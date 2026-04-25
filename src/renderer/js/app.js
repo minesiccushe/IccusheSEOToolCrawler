@@ -138,7 +138,14 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
       // 改行で分割して空行を除外
-      targetUrls = listText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+      const lines = listText.split('\n');
+      targetUrls = [];
+      for (let i = 0; i < lines.length; i++) {
+        const trimmed = lines[i].trim();
+        if (trimmed.length > 0) {
+          targetUrls.push(trimmed);
+        }
+      }
     }
     
     const concurrency = parseInt(concurrencyInput.value, 10) || 5;
