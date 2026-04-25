@@ -35,7 +35,20 @@ describe('HTML Parser', () => {
       h2_2: 'Sub Heading 2',
       h2_3: 'Sub Heading 3',
       metaRobots: 'index, follow',
-      canonicalLink: 'https://example.com/test'
+      canonicalLink: 'https://example.com/test',
+      structuredDataExists: false,
+      structuredDataCount: 0,
+      structuredDataTypes: '',
+      structuredDataJsonLdCount: 0,
+      structuredDataMicrodataCount: 0,
+      structuredDataRdfaCount: 0,
+      structuredDataInvalidCount: 0,
+      structuredDataPrimaryType: '',
+      hasBreadcrumbList: false,
+      hasFAQ: false,
+      hasArticle: false,
+      hasProduct: false,
+      hasOrganization: false
     });
   });
 
@@ -62,7 +75,20 @@ describe('HTML Parser', () => {
       h2_2: '',
       h2_3: '',
       metaRobots: '',
-      canonicalLink: ''
+      canonicalLink: '',
+      structuredDataExists: false,
+      structuredDataCount: 0,
+      structuredDataTypes: '',
+      structuredDataJsonLdCount: 0,
+      structuredDataMicrodataCount: 0,
+      structuredDataRdfaCount: 0,
+      structuredDataInvalidCount: 0,
+      structuredDataPrimaryType: '',
+      hasBreadcrumbList: false,
+      hasFAQ: false,
+      hasArticle: false,
+      hasProduct: false,
+      hasOrganization: false
     });
   });
 
@@ -93,7 +119,20 @@ describe('HTML Parser', () => {
       h2_2: '',
       h2_3: '',
       metaRobots: '',
-      canonicalLink: ''
+      canonicalLink: '',
+      structuredDataExists: false,
+      structuredDataCount: 0,
+      structuredDataTypes: '',
+      structuredDataJsonLdCount: 0,
+      structuredDataMicrodataCount: 0,
+      structuredDataRdfaCount: 0,
+      structuredDataInvalidCount: 0,
+      structuredDataPrimaryType: '',
+      hasBreadcrumbList: false,
+      hasFAQ: false,
+      hasArticle: false,
+      hasProduct: false,
+      hasOrganization: false
     });
   });
 });

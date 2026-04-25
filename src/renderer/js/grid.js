@@ -30,6 +30,21 @@ export function initGrid(containerSelector) {
       { title: "Canonical Link", field: "canonicalLink", width: 200, visible: false },
       { title: "Transferred", field: "transferred", width: 100, visible: false },
       { title: "Total Transferred", field: "totalTransferred", width: 120, visible: false },
+
+      // Structured Data Fields
+      { title: "SD Exists", field: "structuredDataExists", width: 100, visible: false },
+      { title: "SD Count", field: "structuredDataCount", width: 100, visible: false },
+      { title: "SD Types", field: "structuredDataTypes", width: 200, visible: false },
+      { title: "SD JSON-LD Count", field: "structuredDataJsonLdCount", width: 120, visible: false },
+      { title: "SD Microdata Count", field: "structuredDataMicrodataCount", width: 140, visible: false },
+      { title: "SD RDFa Count", field: "structuredDataRdfaCount", width: 120, visible: false },
+      { title: "SD Invalid Count", field: "structuredDataInvalidCount", width: 120, visible: false },
+      { title: "SD Primary Type", field: "structuredDataPrimaryType", width: 150, visible: false },
+      { title: "Has Breadcrumb", field: "hasBreadcrumbList", width: 120, visible: false },
+      { title: "Has FAQ", field: "hasFAQ", width: 100, visible: false },
+      { title: "Has Article", field: "hasArticle", width: 100, visible: false },
+      { title: "Has Product", field: "hasProduct", width: 100, visible: false },
+      { title: "Has Organization", field: "hasOrganization", width: 130, visible: false },
     ],
     rowContextMenu: [
       {
