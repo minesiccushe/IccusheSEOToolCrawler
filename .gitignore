@@ -1,0 +1,11 @@
+.agents/
+.agent/
+.codex/
+.gemini/
+.gpt/
+.claude/
+node_modules/
+.env
+.DS_Store
+*.log
+RULE.md

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SEO Spider</title>
+  <link rel="stylesheet" href="../../node_modules/tabulator-tables/dist/css/tabulator_midnight.min.css">
+  <link rel="stylesheet" href="./styles/main.css">
+</head>
+<body>
+  <div class="app-container">
+    <header class="header">
+      <div class="controls">
+        <div class="mode-setting">
+          <label><input type="radio" name="crawl-mode" value="spider" checked> Spider</label>
+          <label><input type="radio" name="crawl-mode" value="list"> List</label>
+        </div>
+        <input type="url" id="url-input" placeholder="Enter URL to crawl (e.g., https://example.com)" value="https://example.com" required>
+        <textarea id="list-input" class="hidden" placeholder="Enter URLs separated by newline, or an XML sitemap URL"></textarea>
+        <div class="concurrency-setting">
+          <label for="concurrency-input">並行処理数:</label>
+          <input type="number" id="concurrency-input" value="5" min="1" max="10">
+        </div>
+        <div class="auth-setting">
+          <input type="text" id="auth-username" placeholder="Basic Auth User">
+          <input type="password" id="auth-password" placeholder="Password">
+        </div>
+        <button id="btn-start" class="btn btn-primary">Start</button>
+        <button id="btn-pause" class="btn btn-secondary" disabled>Pause</button>
+        <button id="btn-stop" class="btn btn-danger" disabled>Stop</button>
+      </div>
+      <div class="status-bar">
+        <span id="status-text">Ready</span>
+        <div class="progress-container">
+          <div id="progress-bar" class="progress-bar"></div>
+        </div>
+        <span id="progress-text">0 / 0</span>
+      </div>
+      <div class="toolbar-section">
+        <div class="filter-setting">
+          <label for="filter-media">フィルター:</label>
+          <select id="filter-media">
+            <option value="all" selected>全て</option>
+            <option value="html">HTML</option>
+            <option value="image">画像</option>
+            <option value="pdf">pdf</option>
+            <option value="other">その他メディア</option>
+          </select>
+        </div>
+        <div class="actions">
+          <button id="btn-export" class="btn btn-secondary">Export CSV</button>
+          <div class="column-toggle-container">
+            <button id="btn-columns" class="btn btn-secondary">Columns ▼</button>
+            <div id="column-panel" class="column-panel hidden">
+              <!-- Columns will be populated dynamically -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+    
+    <main class="main-content">
+      <div id="data-grid"></div>
+    </main>
+  </div>
+
+  <script src="../../node_modules/tabulator-tables/dist/js/tabulator.min.js"></script>
+  <script src="./js/grid.js" type="module"></script>
+  <script src="./js/app.js" type="module"></script>
+</body>
+</html>

@@ -1,0 +1,164 @@
+import { app, BrowserWindow, ipcMain, dialog } from 'electron';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+let mainWindow;
+let crawlManagerInstance = null;
+
+function createWindow() {
+  mainWindow = new BrowserWindow({
+    width: 1200,
+    height: 800,
+    webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: true,
+      preload: path.join(__dirname, 'preload.cjs')
+    }
+  });
+
+  mainWindow.loadFile(path.join(__dirname, 'src', 'renderer', 'index.html'));
+  
+  if (process.env.NODE_ENV !== 'production') {
+    mainWindow.webContents.openDevTools();
+  }
+}
+
+app.whenReady().then(() => {
+  createWindow();
+
+  app.on('activate', function () {
+    if (BrowserWindow.getAllWindows().length === 0) createWindow();
+  });
+});
+
+app.on('window-all-closed', function () {
+  if (process.platform !== 'darwin') app.quit();
+});
+
+// Phase 2 互換用（単一URL取得）
+ipcMain.handle('fetch-url', async (event, url) => {
+  try {
+    const { fetchUrl } = await import('./src/crawler/fetcher.js');
+    const { parseHtml, evaluateIndexability } = await import('./src/crawler/parser.js');
+    
+    const response = await fetchUrl(url);
+    if (!response.success) {
+      return { success: false, error: response.error || `HTTP Error ${response.statusCode}` };
+    }
+    const parsedData = parseHtml(response.html);
+    const { indexability, indexabilityStatus } = evaluateIndexability(response.statusCode, parsedData, url);
+    
+    return {
+      success: true,
+      data: {
+        address: url, contentType: response.contentType, statusCode: response.statusCode, status: response.status,
+        size: response.size, transferred: response.transferred, totalTransferred: response.totalTransferred,
+        responseTime: response.responseTime, indexability, indexabilityStatus, ...parsedData
+      }
+    };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// クローラーの制御
+ipcMain.handle('start-crawl', async (event, url, options) => {
+  try {
+    if (crawlManagerInstance) {
+      crawlManagerInstance.clear();
+      crawlManagerInstance.removeAllListeners();
+    }
+    
+    const { CrawlManager } = await import('./src/crawler/crawlManager.js');
+    crawlManagerInstance = new CrawlManager(options);
+    
+    let finalUrls = url;
+    // Sitemap URL in List mode
+    if (options.mode === 'list' && Array.isArray(url) && url.length === 1 && url[0].endsWith('.xml')) {
+      const { fetchUrl } = await import('./src/crawler/fetcher.js');
+      const { parseSitemap } = await import('./src/utils/sitemapParser.js');
+      const sitemapResponse = await fetchUrl(url[0], options.auth);
+      if (sitemapResponse.success) {
+        finalUrls = parseSitemap(sitemapResponse.html); // xml string is stored in html prop
+        if (finalUrls.length === 0) {
+           throw new Error('No valid URLs found in the sitemap.');
+        }
+      } else {
+        throw new Error('Failed to fetch sitemap: ' + (sitemapResponse.error || sitemapResponse.status));
+      }
+    }
+    
+    // イベントリスナーの登録
+    crawlManagerInstance.on('url-processed', (data) => {
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('crawl-progress', data);
+      }
+    });
+    
+    crawlManagerInstance.on('crawl-error', (data) => {
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('crawl-error', data);
+      }
+    });
+
+    // 非同期で開始（awaitで待たずにすぐフロントエンドに制御を返す）
+    crawlManagerInstance.start(finalUrls).then(results => {
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('crawl-complete', { success: true, count: results.length });
+      }
+    }).catch(error => {
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('crawl-complete', { success: false, error: error.message });
+      }
+    });
+    
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+ipcMain.handle('pause-crawl', () => {
+  if (crawlManagerInstance) crawlManagerInstance.pause();
+  return { success: true };
+});
+
+ipcMain.handle('resume-crawl', () => {
+  if (crawlManagerInstance) crawlManagerInstance.resume();
+  return { success: true };
+});
+
+ipcMain.handle('stop-crawl', () => {
+  if (crawlManagerInstance) {
+    crawlManagerInstance.clear();
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('crawl-complete', { success: true, count: crawlManagerInstance.results.length, stopped: true });
+    }
+  }
+  return { success: true };
+});
+
+ipcMain.handle('export-csv', async (event, data) => {
+  try {
+    const { canceled, filePath } = await dialog.showSaveDialog(mainWindow, {
+      title: 'CSVエクスポート',
+      defaultPath: 'seo_report.csv',
+      filters: [{ name: 'CSV Files', extensions: ['csv'] }]
+    });
+
+    if (canceled || !filePath) {
+      return { success: false, canceled: true };
+    }
+
+    const { exportToCsv } = await import('./src/exporters/csvExporter.js');
+    await exportToCsv(data, filePath);
+
+    return { success: true, filePath };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
