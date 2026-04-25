@@ -36,11 +36,6 @@ export function initGrid(containerSelector) {
       { title: "Transferred", field: "transferred", width: 100, visible: false },
       { title: "Total Transferred", field: "totalTransferred", width: 120, visible: false },
     ],
-    rowClick: function(e, row) {
-      if (onRowClickCallback) {
-        onRowClickCallback(row.getData());
-      }
-    },
     rowContextMenu: [
       {
         label: "URLをコピー",
@@ -58,7 +53,14 @@ export function initGrid(containerSelector) {
       },
     ],
   });
+
+  table.on("rowClick", function(e, row) {
+    if (onRowClickCallback) {
+      onRowClickCallback(row.getData());
+    }
+  });
 }
+
 
 export function addRow(data) {
   if (table) {

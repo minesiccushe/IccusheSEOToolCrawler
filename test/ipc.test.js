@@ -26,6 +26,12 @@ jest.unstable_mockModule('electron', () => {
     })),
     dialog: {
       showSaveDialog: jest.fn().mockResolvedValue({ canceled: false, filePath: 'test.csv' })
+    },
+    clipboard: {
+      writeText: jest.fn()
+    },
+    shell: {
+      openExternal: jest.fn().mockResolvedValue()
     }
   };
 });
