@@ -21,7 +21,10 @@ export function exportToCsv(data, filePath) {
       'internalLinkCount', 'externalLinkCount', 'internalNofollowCount', 'externalNofollowCount',
       'internalLinkUrls', 'externalLinkUrls', 'internalAnchorTexts', 'externalAnchorTexts',
       'internalLinkUniqueCount', 'externalLinkUniqueCount', 'selfLinkCount',
-      'hasBreadcrumbLink', 'linkToTopPage', 'linkDepthEstimate'
+      'hasBreadcrumbLink', 'linkToTopPage', 'linkDepthEstimate',
+      'structuredDataExists', 'structuredDataCount', 'structuredDataTypes', 'structuredDataJsonLdCount',
+      'structuredDataMicrodataCount', 'structuredDataRdfaCount', 'structuredDataInvalidCount',
+      'structuredDataPrimaryType', 'hasBreadcrumbList', 'hasFAQ', 'hasArticle', 'hasProduct', 'hasOrganization'
     ];
 
     stringify(data, {

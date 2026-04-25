@@ -49,7 +49,20 @@ describe('HTML Parser', () => {
       selfLinkCount: 0,
       hasBreadcrumbLink: false,
       linkToTopPage: false,
-      linkDepthEstimate: 1
+      linkDepthEstimate: 1,
+      structuredDataExists: false,
+      structuredDataCount: 0,
+      structuredDataTypes: '',
+      structuredDataJsonLdCount: 0,
+      structuredDataMicrodataCount: 0,
+      structuredDataRdfaCount: 0,
+      structuredDataInvalidCount: 0,
+      structuredDataPrimaryType: '',
+      hasBreadcrumbList: false,
+      hasFAQ: false,
+      hasArticle: false,
+      hasProduct: false,
+      hasOrganization: false
     });
   });
 
@@ -125,7 +138,20 @@ describe('HTML Parser', () => {
       selfLinkCount: 0,
       hasBreadcrumbLink: false,
       linkToTopPage: false,
-      linkDepthEstimate: 0
+      linkDepthEstimate: 0,
+      structuredDataExists: false,
+      structuredDataCount: 0,
+      structuredDataTypes: '',
+      structuredDataJsonLdCount: 0,
+      structuredDataMicrodataCount: 0,
+      structuredDataRdfaCount: 0,
+      structuredDataInvalidCount: 0,
+      structuredDataPrimaryType: '',
+      hasBreadcrumbList: false,
+      hasFAQ: false,
+      hasArticle: false,
+      hasProduct: false,
+      hasOrganization: false
     });
   });
 
@@ -170,7 +196,20 @@ describe('HTML Parser', () => {
       selfLinkCount: 0,
       hasBreadcrumbLink: false,
       linkToTopPage: false,
-      linkDepthEstimate: 0
+      linkDepthEstimate: 0,
+      structuredDataExists: false,
+      structuredDataCount: 0,
+      structuredDataTypes: '',
+      structuredDataJsonLdCount: 0,
+      structuredDataMicrodataCount: 0,
+      structuredDataRdfaCount: 0,
+      structuredDataInvalidCount: 0,
+      structuredDataPrimaryType: '',
+      hasBreadcrumbList: false,
+      hasFAQ: false,
+      hasArticle: false,
+      hasProduct: false,
+      hasOrganization: false
     });
   });
 });
