@@ -1,6 +1,11 @@
 // grid.js
 
 let table = null;
+let onRowClickCallback = null;
+
+export function setOnRowClick(callback) {
+  onRowClickCallback = callback;
+}
 
 export function initGrid(containerSelector) {
   table = new Tabulator(containerSelector, {
@@ -78,7 +83,14 @@ export function initGrid(containerSelector) {
       },
     ],
   });
+
+  table.on("rowClick", function(e, row) {
+    if (onRowClickCallback) {
+      onRowClickCallback(row.getData());
+    }
+  });
 }
+
 
 export function addRow(data) {
   if (table) {
