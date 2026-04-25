@@ -1,5 +1,13 @@
 import * as cheerio from 'cheerio';
 
+function normalizeHeadingText(text) {
+  if (!text) return '';
+  return text
+    .replace(/[\r\n\t]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 function normalizeType(type) {
   if (!type || typeof type !== 'string') return '';
   // Remove URL parts and prefixes
@@ -55,6 +63,73 @@ export function parseHtml(html, currentUrl = '') {
     const element = $(tag).eq(index);
     return element.length ? element.text().trim() : '';
   };
+
+  const headings = [];
+  const headingCounts = { h1: 0, h2: 0, h3: 0, h4: 0, h5: 0, h6: 0 };
+  const headingTexts = { h1: [], h2: [], h3: [] };
+  let firstH1Text = null;
+  let longestHeadingTextLength = 0;
+  let emptyHeadingCount = 0;
+
+  $('h1, h2, h3, h4, h5, h6').each((_, el) => {
+    const node = $(el);
+    const style = node.attr('style') || '';
+    if (style.replace(/\s/g, '').toLowerCase().includes('display:none')) return;
+    if (node.attr('aria-hidden') === 'true') return;
+
+    let text = '';
+    const extractText = (elem) => {
+      $(elem).contents().each((_, child) => {
+        if (child.type === 'text') {
+          text += child.data;
+        } else if (child.type === 'tag') {
+          if (child.name !== 'script' && child.name !== 'style') {
+            extractText(child);
+          }
+        }
+      });
+    };
+    extractText(el);
+
+    const levelMatch = el.tagName.match(/^h([1-6])$/i);
+    if (!levelMatch) return;
+    const level = parseInt(levelMatch[1], 10);
+    const normalizedText = normalizeHeadingText(text);
+
+    headings.push({ level, text: normalizedText });
+    headingCounts[`h${level}`]++;
+
+    if (normalizedText === '' || /^\s*$/.test(text.replace(/[\u200B-\u200D\uFEFF]/g, ''))) {
+      emptyHeadingCount++;
+    }
+
+    if (normalizedText.length > longestHeadingTextLength) {
+      longestHeadingTextLength = normalizedText.length;
+    }
+
+    // Capture the first H1 regardless of whether it's empty or not.
+    if (level === 1 && firstH1Text === null) {
+      firstH1Text = normalizedText;
+    }
+
+    if (level >= 1 && level <= 3 && normalizedText !== '') {
+      headingTexts[`h${level}`].push(normalizedText);
+    }
+  });
+
+  let headingOrderValid = true;
+  const headingHierarchyIssues = [];
+  let previousLevel = null;
+
+  for (const h of headings) {
+    if (previousLevel !== null) {
+      if (h.level > previousLevel + 1) {
+        headingOrderValid = false;
+        headingHierarchyIssues.push(`h${previousLevel}→h${h.level}`);
+      }
+    }
+    previousLevel = h.level;
+  }
 
   const metaRobots = getMetaContent('robots');
   const metaRobotsLower = metaRobots.toLowerCase();
@@ -325,6 +400,24 @@ export function parseHtml(html, currentUrl = '') {
     hasBreadcrumbLink,
     linkToTopPage,
     linkDepthEstimate,
+
+    // Heading Fields
+    h1Count: headingCounts.h1,
+    h2Count: headingCounts.h2,
+    h3Count: headingCounts.h3,
+    h4Count: headingCounts.h4,
+    h5Count: headingCounts.h5,
+    h6Count: headingCounts.h6,
+    h1Texts: headingTexts.h1.join('|'),
+    h2Texts: headingTexts.h2.join('|'),
+    h3Texts: headingTexts.h3.join('|'),
+    hasMultipleH1: headingCounts.h1 > 1,
+    missingH1: headingCounts.h1 === 0,
+    headingOrderValid,
+    headingHierarchyIssues: headingHierarchyIssues.join('|'),
+    firstH1Text: firstH1Text === null ? '' : firstH1Text,
+    longestHeadingTextLength,
+    emptyHeadingCount,
 
     // Structured Data Fields
     structuredDataExists,
