@@ -7,8 +7,16 @@ const placeholder = detailView.querySelector('.detail-placeholder');
 const contextMenu = document.getElementById('detail-context-menu');
 const menuCopy = document.getElementById('menu-copy');
 const menuOpenUrl = document.getElementById('menu-open-url');
+const btnCloseDetail = document.getElementById('btn-close-detail');
 
 let currentContextData = { value: '', field: '' };
+
+// 詳細ビューを閉じるアクション
+btnCloseDetail.addEventListener('click', () => {
+  detailView.classList.add('hidden');
+  placeholder.classList.remove('hidden');
+  detailContent.innerHTML = '';
+});
 
 /**
  * 指定された行のデータを詳細ビューに表示する

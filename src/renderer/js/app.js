@@ -210,6 +210,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  // アクセシビリティ：ショートカットキー
+  urlInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !btnStart.disabled) {
+      btnStart.click();
+    }
+  });
+
+  listInput.addEventListener('keydown', (e) => {
+    if (e.ctrlKey && e.key === 'Enter' && !btnStart.disabled) {
+      btnStart.click();
+    }
+  });
+
   // イベントリスナー
   if (window.api.onCrawlProgress) {
     window.api.onCrawlProgress((data) => {
