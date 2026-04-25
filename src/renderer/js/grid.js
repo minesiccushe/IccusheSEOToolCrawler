@@ -31,6 +31,21 @@ export function initGrid(containerSelector) {
       { title: "Transferred", field: "transferred", width: 100, visible: false },
       { title: "Total Transferred", field: "totalTransferred", width: 120, visible: false },
 
+      // New columns for links and structures
+      { title: "Internal Link Count", field: "internalLinkCount", width: 120, visible: false, hozAlign: "right" },
+      { title: "External Link Count", field: "externalLinkCount", width: 120, visible: false, hozAlign: "right" },
+      { title: "Internal Nofollow Count", field: "internalNofollowCount", width: 130, visible: false, hozAlign: "right" },
+      { title: "External Nofollow Count", field: "externalNofollowCount", width: 130, visible: false, hozAlign: "right" },
+      { title: "Internal Link URLs", field: "internalLinkUrls", width: 200, visible: false },
+      { title: "External Link URLs", field: "externalLinkUrls", width: 200, visible: false },
+      { title: "Internal Anchor Texts", field: "internalAnchorTexts", width: 200, visible: false },
+      { title: "External Anchor Texts", field: "externalAnchorTexts", width: 200, visible: false },
+      { title: "Internal Link Unique Count", field: "internalLinkUniqueCount", width: 150, visible: false, hozAlign: "right" },
+      { title: "External Link Unique Count", field: "externalLinkUniqueCount", width: 150, visible: false, hozAlign: "right" },
+      { title: "Self Link Count", field: "selfLinkCount", width: 120, visible: false, hozAlign: "right" },
+      { title: "Has Breadcrumb Link", field: "hasBreadcrumbLink", width: 120, visible: false },
+      { title: "Link To Top Page", field: "linkToTopPage", width: 120, visible: false },
+      { title: "Link Depth Estimate", field: "linkDepthEstimate", width: 120, visible: false, hozAlign: "right" },
       // Structured Data Fields
       { title: "SD Exists", field: "structuredDataExists", width: 100, visible: false },
       { title: "SD Count", field: "structuredDataCount", width: 100, visible: false },
