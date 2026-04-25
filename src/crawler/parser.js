@@ -17,6 +17,9 @@ export function parseHtml(html) {
     return element.length ? element.text().trim() : '';
   };
 
+  const metaRobots = getMetaContent('robots');
+  const metaRobotsLower = metaRobots.toLowerCase();
+
   const extractedData = {
     title: $('title').text().trim(),
     metaDescription: getMetaContent('description'),
@@ -26,7 +29,9 @@ export function parseHtml(html) {
     h2_1: getHeading('h2', 0),
     h2_2: getHeading('h2', 1),
     h2_3: getHeading('h2', 2),
-    metaRobots: getMetaContent('robots'),
+    metaRobotsRaw: metaRobots,
+    metaRobotsIndex: !metaRobotsLower.includes('noindex'),
+    metaRobotsFollow: !metaRobotsLower.includes('nofollow'),
     canonicalLink: $('link[rel="canonical" i]').attr('href') || ''
   };
 
@@ -39,38 +44,58 @@ export function parseHtml(html) {
  * @param {number} statusCode HTTPステータスコード
  * @param {Object} parsedData パースされたHTMLデータ
  * @param {string} currentUrl 現在のURL
- * @returns {Object} { indexability, indexabilityStatus }
+ * @param {Object} [robotsTxtResult] robots.txtの評価結果 { status }
+ * @param {string} [xRobotsTag] X-Robots-Tagの値
+ * @returns {Object} { indexabilityFinal, indexabilityReason }
  */
-export function evaluateIndexability(statusCode, parsedData, currentUrl) {
+export function evaluateIndexability(statusCode, parsedData, currentUrl, robotsTxtResult = {}, xRobotsTag = '') {
+  const reasons = [];
+
+  // 1. HTTPステータス（4xx/5xx）
   if (statusCode >= 500) {
-    return { indexability: 'Non-Indexable', indexabilityStatus: 'Server Error' };
-  }
-  if (statusCode >= 400) {
-    return { indexability: 'Non-Indexable', indexabilityStatus: 'Client Error' };
-  }
-  if (statusCode >= 300) {
-    return { indexability: 'Non-Indexable', indexabilityStatus: 'Redirection' };
-  }
-  if (statusCode !== 200) {
-    return { indexability: 'Non-Indexable', indexabilityStatus: 'Error' };
-  }
-
-  if (parsedData.metaRobots && /noindex/i.test(parsedData.metaRobots)) {
-    return { indexability: 'Non-Indexable', indexabilityStatus: 'noindex' };
+    reasons.push('http_5xx');
+  } else if (statusCode >= 400 && statusCode < 500) {
+    reasons.push('http_4xx');
+  } else if (statusCode !== 200 && statusCode >= 300) {
+    // 3xx Redirection etc. We map it to something reasonable, or just follow requirement.
+    // The requirement specifically mentions http_4xx and http_5xx, but also old logic caught 3xx. Let's add http_3xx just in case, though prompt says "HTTPステータス（4xx/5xx）".
+    reasons.push('http_3xx');
+  } else if (statusCode !== 200) {
+    reasons.push('http_error');
   }
 
+  // 2. robots.txt
+  if (robotsTxtResult.status === 'disallowed') {
+    reasons.push('robots_txt_block');
+  }
+
+  // 3. X-Robots-Tag
+  if (xRobotsTag && /noindex/i.test(xRobotsTag)) {
+    reasons.push('x_robots_noindex');
+  }
+
+  // 4. meta robots
+  if (parsedData.metaRobotsRaw && /noindex/i.test(parsedData.metaRobotsRaw)) {
+    reasons.push('meta_noindex');
+  }
+
+  // 5. canonical
   if (parsedData.canonicalLink) {
     try {
       const canonicalUrlObj = new URL(parsedData.canonicalLink, currentUrl);
       const currentUrlObj = new URL(currentUrl);
       
       if (canonicalUrlObj.href !== currentUrlObj.href) {
-        return { indexability: 'Non-Indexable', indexabilityStatus: 'Canonicalised' };
+        reasons.push('canonical_to_other');
       }
     } catch (e) {
       // Invalid URLs ignore canonical validation
     }
   }
 
-  return { indexability: 'Indexable', indexabilityStatus: '' };
+  if (reasons.length > 0) {
+    return { indexabilityFinal: 'non-indexable', indexabilityReason: reasons.join('|') };
+  }
+
+  return { indexabilityFinal: 'indexable', indexabilityReason: '' };
 }

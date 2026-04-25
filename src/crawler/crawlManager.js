@@ -90,7 +90,8 @@ export class CrawlManager extends EventEmitter {
         }
 
         // robots.txt の許可チェックと Crawl-delay の取得
-        const isAllowed = await robotsHandler.isAllowed(url, this.userAgent, this.auth);
+        const robotsResult = await robotsHandler.evaluate(url, this.userAgent, this.auth);
+        const isAllowed = robotsResult.isAllowed;
         const robotsDelay = await robotsHandler.getCrawlDelay(url, this.userAgent, this.auth);
 
         // 1. robots.txt の Crawl-delay を尊重するためのドメイン単位インターバル待機
@@ -121,8 +122,14 @@ export class CrawlManager extends EventEmitter {
             transferred: 0,
             totalTransferred: 0,
             responseTime: 0,
-            indexability: 'Non-Indexable',
-            indexabilityStatus: 'Blocked by robots.txt'
+            xRobotsTag: '',
+            robotsTxtStatus: robotsResult.status,
+            robotsTxtDirective: robotsResult.directive,
+            metaRobotsIndex: true,
+            metaRobotsFollow: true,
+            metaRobotsRaw: '',
+            indexabilityFinal: 'non-indexable',
+            indexabilityReason: 'robots_txt_block'
           };
           this.results.push(rowData);
           this.emit('url-processed', {
@@ -146,8 +153,14 @@ export class CrawlManager extends EventEmitter {
           transferred: fetchResult.transferred,
           totalTransferred: fetchResult.totalTransferred,
           responseTime: fetchResult.responseTime,
-          indexability: 'Indexable',
-          indexabilityStatus: ''
+          xRobotsTag: fetchResult.xRobotsTag || '',
+          robotsTxtStatus: robotsResult.status,
+          robotsTxtDirective: robotsResult.directive,
+          metaRobotsIndex: true,
+          metaRobotsFollow: true,
+          metaRobotsRaw: '',
+          indexabilityFinal: 'indexable',
+          indexabilityReason: ''
         };
 
         if (fetchResult.success && fetchResult.html) {
@@ -155,7 +168,9 @@ export class CrawlManager extends EventEmitter {
           const parsedData = parseHtml(fetchResult.html);
           
           // Indexabilityの評価
-          const indexabilityResult = evaluateIndexability(fetchResult.statusCode, parsedData, url);
+          const indexabilityResult = evaluateIndexability(
+            fetchResult.statusCode, parsedData, url, robotsResult, fetchResult.xRobotsTag
+          );
           
           Object.assign(rowData, parsedData, indexabilityResult);
 
@@ -168,7 +183,9 @@ export class CrawlManager extends EventEmitter {
           }
         } else {
           // fetch失敗時などのIndexability
-          const indexabilityResult = evaluateIndexability(fetchResult.statusCode, {}, url);
+          const indexabilityResult = evaluateIndexability(
+            fetchResult.statusCode, {}, url, robotsResult, fetchResult.xRobotsTag
+          );
           Object.assign(rowData, indexabilityResult);
         }
 

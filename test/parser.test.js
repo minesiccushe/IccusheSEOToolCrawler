@@ -34,7 +34,9 @@ describe('HTML Parser', () => {
       h2_1: 'Sub Heading 1',
       h2_2: 'Sub Heading 2',
       h2_3: 'Sub Heading 3',
-      metaRobots: 'index, follow',
+      metaRobotsRaw: 'index, follow',
+      metaRobotsIndex: true,
+      metaRobotsFollow: true,
       canonicalLink: 'https://example.com/test'
     });
   });
@@ -61,7 +63,9 @@ describe('HTML Parser', () => {
       h2_1: '',
       h2_2: '',
       h2_3: '',
-      metaRobots: '',
+      metaRobotsRaw: '',
+      metaRobotsIndex: true,
+      metaRobotsFollow: true,
       canonicalLink: ''
     });
   });
@@ -92,7 +96,9 @@ describe('HTML Parser', () => {
       h2_1: '',
       h2_2: '',
       h2_3: '',
-      metaRobots: '',
+      metaRobotsRaw: '',
+      metaRobotsIndex: true,
+      metaRobotsFollow: true,
       canonicalLink: ''
     });
   });

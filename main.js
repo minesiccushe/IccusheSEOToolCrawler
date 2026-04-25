@@ -43,20 +43,28 @@ ipcMain.handle('fetch-url', async (event, url) => {
   try {
     const { fetchUrl } = await import('./src/crawler/fetcher.js');
     const { parseHtml, evaluateIndexability } = await import('./src/crawler/parser.js');
+    const robotsHandler = (await import('./src/crawler/robotsHandler.js')).default;
     
+    // Check robots.txt first
+    const robotsResult = await robotsHandler.evaluate(url, 'IccusheSEOToolCrawler/1.0', null);
+
     const response = await fetchUrl(url);
-    if (!response.success) {
-      return { success: false, error: response.error || `HTTP Error ${response.statusCode}` };
-    }
-    const parsedData = parseHtml(response.html);
-    const { indexability, indexabilityStatus } = evaluateIndexability(response.statusCode, parsedData, url);
+
+    const parsedData = response.html ? parseHtml(response.html) : {};
+    const { indexabilityFinal, indexabilityReason } = evaluateIndexability(
+        response.statusCode, parsedData, url, robotsResult, response.xRobotsTag || ''
+    );
     
     return {
       success: true,
       data: {
         address: url, contentType: response.contentType, statusCode: response.statusCode, status: response.status,
         size: response.size, transferred: response.transferred, totalTransferred: response.totalTransferred,
-        responseTime: response.responseTime, indexability, indexabilityStatus, ...parsedData
+        responseTime: response.responseTime,
+        xRobotsTag: response.xRobotsTag || '',
+        robotsTxtStatus: robotsResult.status,
+        robotsTxtDirective: robotsResult.directive,
+        indexabilityFinal, indexabilityReason, ...parsedData
       }
     };
   } catch (error) {

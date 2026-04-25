@@ -13,7 +13,7 @@ jest.unstable_mockModule('../../src/crawler/linkExtractor.js', () => ({
 }));
 jest.unstable_mockModule('../../src/crawler/robotsHandler.js', () => ({
   default: {
-    isAllowed: jest.fn().mockResolvedValue(true),
+    evaluate: jest.fn().mockResolvedValue({ isAllowed: true, status: 'allowed', directive: '' }),
     getCrawlDelay: jest.fn().mockResolvedValue(0),
     getSitemaps: jest.fn().mockResolvedValue([])
   }
@@ -41,7 +41,7 @@ describe('CrawlManager のテスト', () => {
     });
     
     parser.parseHtml.mockReturnValue({ title: 'Test Title' });
-    parser.evaluateIndexability.mockReturnValue({ indexability: 'Indexable', indexabilityStatus: '' });
+    parser.evaluateIndexability.mockReturnValue({ indexabilityFinal: 'indexable', indexabilityReason: '' });
     linkExtractor.extractLinks.mockReturnValue([]);
 
     const manager = new CrawlManager({ concurrency: 1, maxUrls: 10, requestDelay: 0 });
@@ -70,7 +70,9 @@ describe('CrawlManager のテスト', () => {
     });
     
     parser.parseHtml.mockReturnValue({});
-    parser.evaluateIndexability.mockReturnValue({ indexability: 'Indexable', indexabilityStatus: '' });
+    parser.evaluateIndexability.mockReturnValue({ indexabilityFinal: 'indexable', indexabilityReason: '' });
+    parser.evaluateIndexability.mockReturnValue({ indexabilityFinal: 'indexable', indexabilityReason: '' });
+    parser.evaluateIndexability.mockReturnValue({ indexabilityFinal: 'indexable', indexabilityReason: '' });
     
     linkExtractor.extractLinks.mockImplementation((html, url) => {
       if (url === 'http://example.com/1') {
@@ -166,7 +168,7 @@ describe('CrawlManager のテスト', () => {
   });
 
   test('robots.txtでブロックされた場合はクロールされずNon-Indexableとなる', async () => {
-    robotsHandler.isAllowed.mockResolvedValueOnce(false); // 次の1回だけブロック
+    robotsHandler.evaluate.mockResolvedValueOnce({ isAllowed: false, status: 'disallowed', directive: 'User-agent: * Disallow: /' }); // 次の1回だけブロック
 
     const manager = new CrawlManager({ requestDelay: 0 });
     const results = await manager.start('http://example.com/blocked');
@@ -174,8 +176,10 @@ describe('CrawlManager のテスト', () => {
     expect(results.length).toBe(1);
     expect(results[0].address).toBe('http://example.com/blocked');
     expect(results[0].status).toBe('Blocked by robots.txt');
-    expect(results[0].indexability).toBe('Non-Indexable');
-    expect(results[0].indexabilityStatus).toBe('Blocked by robots.txt');
+    expect(results[0].indexabilityFinal).toBe('non-indexable');
+    expect(results[0].indexabilityReason).toBe('robots_txt_block');
+    expect(results[0].robotsTxtStatus).toBe('disallowed');
+    expect(results[0].robotsTxtDirective).toBe('User-agent: * Disallow: /');
     
     // fetchUrlは呼ばれないはず
     expect(fetcher.fetchUrl).not.toHaveBeenCalledWith('http://example.com/blocked', expect.any(Object));
@@ -186,7 +190,7 @@ describe('CrawlManager のテスト', () => {
       html: '<html></html>', size: 10, transferred: 10, totalTransferred: 50, responseTime: 100, contentType: 'text/html'
     });
     parser.parseHtml.mockReturnValue({});
-    parser.evaluateIndexability.mockReturnValue({ indexability: 'Indexable', indexabilityStatus: '' });
+    parser.evaluateIndexability.mockReturnValue({ indexabilityFinal: 'indexable', indexabilityReason: '' });
     linkExtractor.extractLinks.mockReturnValue([]);
 
     // 50ms のディレイを設定し、実際にその分時間がかかることを確認
