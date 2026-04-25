@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, dialog } from 'electron';
+import { app, BrowserWindow, ipcMain, dialog, shell, clipboard } from 'electron';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -162,3 +162,23 @@ ipcMain.handle('export-csv', async (event, data) => {
   }
 });
 
+
+// --- 以下、右クリックメニューおよび左クリック計画でも共用するハンドラー ---
+
+// 外部ブラウザでURLを開く
+try {
+  ipcMain.handle('open-external', async (event, url) => {
+    if (url) await shell.openExternal(url);
+  });
+} catch (e) {
+  console.warn('IPC handler "open-external" is already registered.');
+}
+
+// クリップボードにテキストをコピー（Electronのclipboardモジュールを使用）
+try {
+  ipcMain.handle('copy-to-clipboard', (event, text) => {
+    if (text) clipboard.writeText(text);
+  });
+} catch (e) {
+  console.warn('IPC handler "copy-to-clipboard" is already registered.');
+}

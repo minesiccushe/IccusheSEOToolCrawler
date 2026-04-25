@@ -31,6 +31,22 @@ export function initGrid(containerSelector) {
       { title: "Transferred", field: "transferred", width: 100, visible: false },
       { title: "Total Transferred", field: "totalTransferred", width: 120, visible: false },
     ],
+    rowContextMenu: [
+      {
+        label: "URLをコピー",
+        action: function(e, row) {
+          const url = row.getData().address;
+          if (url) window.api.copyToClipboard(url);
+        }
+      },
+      {
+        label: "デフォルトブラウザで開く",
+        action: function(e, row) {
+          const url = row.getData().address;
+          if (url) window.api.openExternal(url);
+        }
+      },
+    ],
   });
 }
 

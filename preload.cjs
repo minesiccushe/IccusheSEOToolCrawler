@@ -10,6 +10,8 @@ contextBridge.exposeInMainWorld('api', {
   onCrawlComplete: (callback) => ipcRenderer.on('crawl-complete', (_event, data) => callback(data)),
   onCrawlError: (callback) => ipcRenderer.on('crawl-error', (_event, data) => callback(data)),
   exportCsv: (data) => ipcRenderer.invoke('export-csv', data),
+  openExternal: (url) => ipcRenderer.invoke('open-external', url),
+  copyToClipboard: (text) => ipcRenderer.invoke('copy-to-clipboard', text),
   removeAllCrawlListeners: () => {
     ipcRenderer.removeAllListeners('crawl-progress');
     ipcRenderer.removeAllListeners('crawl-complete');
