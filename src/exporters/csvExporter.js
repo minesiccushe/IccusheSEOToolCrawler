@@ -18,6 +18,9 @@ export function exportToCsv(data, filePath) {
       'address', 'contentType', 'statusCode', 'status', 'indexability', 'indexabilityStatus',
       'title', 'metaDescription', 'metaKeywords', 'h1_1', 'h1_2', 'h2_1', 'h2_2', 'h2_3',
       'metaRobots', 'canonicalLink', 'size', 'transferred', 'totalTransferred', 'responseTime',
+      'h1Count', 'h2Count', 'h3Count', 'h4Count', 'h5Count', 'h6Count',
+      'h1Texts', 'h2Texts', 'h3Texts', 'hasMultipleH1', 'missingH1', 'headingOrderValid',
+      'headingHierarchyIssues', 'firstH1Text', 'longestHeadingTextLength', 'emptyHeadingCount',
       'structuredDataExists', 'structuredDataCount', 'structuredDataTypes', 'structuredDataJsonLdCount',
       'structuredDataMicrodataCount', 'structuredDataRdfaCount', 'structuredDataInvalidCount',
       'structuredDataPrimaryType', 'hasBreadcrumbList', 'hasFAQ', 'hasArticle', 'hasProduct', 'hasOrganization'
