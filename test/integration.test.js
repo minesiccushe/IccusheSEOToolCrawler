@@ -11,7 +11,7 @@ describe('Core Logic Integration', () => {
     expect(fetchResult.statusCode).toBe(200);
     
     // 2. Parse HTML
-    const parsedData = parseHtml(fetchResult.html);
+    const parsedData = parseHtml(fetchResult.html, targetUrl);
     
     // 3. Evaluate Indexability
     const indexabilityResult = evaluateIndexability(fetchResult.statusCode, parsedData, fetchResult.address);
@@ -36,6 +36,9 @@ describe('Core Logic Integration', () => {
       'transferred',
       'totalTransferred',
       'responseTime',
+      'structuredDataExists', 'structuredDataCount', 'structuredDataTypes', 'structuredDataJsonLdCount',
+      'structuredDataMicrodataCount', 'structuredDataRdfaCount', 'structuredDataInvalidCount',
+      'structuredDataPrimaryType', 'hasBreadcrumbList', 'hasFAQ', 'hasArticle', 'hasProduct', 'hasOrganization',
       'title',
       'metaDescription',
       'metaKeywords',
@@ -49,7 +52,23 @@ describe('Core Logic Integration', () => {
       'metaRobotsFollow',
       'canonicalLink',
       'indexabilityFinal',
-      'indexabilityReason'
+      'indexabilityReason',
+      'indexability',
+      'indexabilityStatus',
+      'internalLinkCount',
+      'externalLinkCount',
+      'internalNofollowCount',
+      'externalNofollowCount',
+      'internalLinkUrls',
+      'externalLinkUrls',
+      'internalAnchorTexts',
+      'externalAnchorTexts',
+      'internalLinkUniqueCount',
+      'externalLinkUniqueCount',
+      'selfLinkCount',
+      'hasBreadcrumbLink',
+      'linkToTopPage',
+      'linkDepthEstimate'
     ];
 
     // fetchResult comes with xRobotsTag

@@ -165,7 +165,7 @@ export class CrawlManager extends EventEmitter {
 
         if (fetchResult.success && fetchResult.html) {
           // HTMLのパース
-          const parsedData = parseHtml(fetchResult.html);
+          const parsedData = parseHtml(fetchResult.html, url);
           
           // Indexabilityの評価
           const indexabilityResult = evaluateIndexability(
