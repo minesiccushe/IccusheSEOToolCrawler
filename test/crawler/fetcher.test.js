@@ -26,7 +26,7 @@ describe('fetcher.js のテスト', () => {
     
     expect(axios.get).toHaveBeenCalledWith('http://example.com', expect.objectContaining({
       headers: expect.objectContaining({
-        'User-Agent': expect.stringContaining('SEOSpider-Bot')
+        'User-Agent': expect.stringContaining('IccusheSEOToolCrawler/1.0')
       })
     }));
     expect(result.success).toBe(true);

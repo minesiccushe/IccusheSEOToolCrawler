@@ -3,7 +3,7 @@ import axiosRetry from 'axios-retry';
 import jschardet from 'jschardet';
 import iconv from 'iconv-lite';
 
-const DEFAULT_USER_AGENT = 'SEOSpider-Bot/1.0 (+https://github.com/user/seotool)';
+const DEFAULT_USER_AGENT = 'IccusheSEOToolCrawler/1.0(+https://github.com/minesiccushe/IccusheSEOToolCrawler)';
 
 // axios-retry の設定
 axiosRetry(axios, {

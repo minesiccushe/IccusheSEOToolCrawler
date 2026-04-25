@@ -13,7 +13,7 @@ export class CrawlManager extends EventEmitter {
     this.maxUrls = options.maxUrls || 10000;
     this.mode = options.mode || 'spider'; // 'spider' or 'list'
     this.auth = options.auth || null;
-    this.userAgent = options.userAgent || 'SEOSpider-Bot';
+    this.userAgent = options.userAgent || 'IccusheSEOToolCrawler/1.0';
     // リクエスト間の最小待機時間（ms）。作法：デフォルト1000ms（旧100ms）
     this.requestDelay = options.requestDelay !== undefined ? options.requestDelay : 1000;
     this.queue = new PQueue({ concurrency: this.concurrency });
