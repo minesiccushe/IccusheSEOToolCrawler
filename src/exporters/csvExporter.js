@@ -15,8 +15,12 @@ export function exportToCsv(data, filePath) {
 
     // 抽出するカラムの定義
     const columns = [
-      'address', 'contentType', 'statusCode', 'status', 'indexability', 'indexabilityStatus',
+      'address', 'contentType', 'statusCode', 'status',
+      'indexabilityFinal', 'indexabilityReason',
+      'xRobotsTag', 'robotsTxtStatus', 'robotsTxtDirective',
+      'metaRobotsIndex', 'metaRobotsFollow', 'metaRobotsRaw',
       'title', 'metaDescription', 'metaKeywords', 'h1_1', 'h1_2', 'h2_1', 'h2_2', 'h2_3',
+      'canonicalLink', 'size', 'transferred', 'totalTransferred', 'responseTime',
       'metaRobots', 'canonicalLink', 'size', 'transferred', 'totalTransferred', 'responseTime',
       'internalLinkCount', 'externalLinkCount', 'internalNofollowCount', 'externalNofollowCount',
       'internalLinkUrls', 'externalLinkUrls', 'internalAnchorTexts', 'externalAnchorTexts',

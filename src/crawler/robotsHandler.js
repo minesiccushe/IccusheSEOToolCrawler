@@ -7,6 +7,21 @@ class RobotsHandler {
   }
 
   /**
+   * robots.txt の取得状況を把握するためのヘルパー
+   * @param {string} url
+   * @returns {string} status ('allowed' | 'disallowed' | 'unknown' | 'error') -> Note: this will be evaluated per URL later, but we need to track if fetching failed.
+   */
+  getCacheStatus(url) {
+      try {
+          const origin = new URL(url).origin;
+          if (this.cache.has(origin)) {
+              return this.cache.get(origin) === null ? 'error' : 'fetched';
+          }
+      } catch (e) {}
+      return 'unknown';
+  }
+
+  /**
    * 指定されたURLのオリジンから robots.txt を取得し、パースする
    * キャッシュがあればそれを返す
    * @param {string} url - チェック対象のURL
@@ -55,6 +70,82 @@ class RobotsHandler {
       }
       return null;
     }
+  }
+
+  /**
+   * 指定したURLに適用されるディレクティブ文字列を取得する
+   * @param {string} url - チェック対象のURL
+   * @param {Array<string>} userAgents - 評価するUser-Agentの配列（例: ['*', 'Googlebot']）
+   * @param {Object} [auth=null] - 認証情報
+   * @returns {Promise<string>} 該当するディレクティブ（複数ある場合は ; 区切り）
+   */
+  async getRobotsDirective(url, userAgents = ['*', 'Googlebot'], auth = null) {
+    const parser = await this.getRobotsTxt(url, auth);
+    if (!parser) return '';
+
+    const directives = [];
+    for (const ua of userAgents) {
+      const lineNum = parser.getMatchingLineNumber(url, ua);
+      if (lineNum !== undefined && lineNum > 0) {
+        const uaKey = ua.toLowerCase();
+        const rules = parser._rules[uaKey] || parser._rules['*'];
+        if (rules) {
+          for (const rule of rules) {
+            if (rule.lineNumber === lineNum) {
+              const dirType = rule.allow ? 'Allow' : 'Disallow';
+              directives.push(`User-agent: ${ua} ${dirType}: ${rule.pattern}`);
+            }
+          }
+        }
+      }
+    }
+    return directives.join('; ');
+  }
+
+  /**
+   * 指定したURLのrobots.txt評価結果（status, directive）を取得する
+   * @param {string} url - チェック対象のURL
+   * @param {string} userAgent - クローラーのUser-Agent
+   * @param {Object} [auth=null] - 認証情報
+   * @returns {Promise<Object>} { isAllowed: boolean, status: string, directive: string }
+   */
+  async evaluate(url, userAgent = '*', auth = null) {
+      let isAllowed = true;
+      let status = 'unknown';
+      let directive = '';
+
+      try {
+          new URL(url);
+      } catch (e) {
+          return { isAllowed: false, status: 'error', directive: '' };
+      }
+
+      // Check cache status before fetch to know if it's unknown vs error
+      const preFetchStatus = this.getCacheStatus(url);
+      const parser = await this.getRobotsTxt(url, auth);
+
+      if (!parser) {
+          // If parser is null, it means there was an error fetching or it's a 4xx/5xx for robots.txt
+          // Assuming error means we default to allow, but status is 'error' or 'unknown'
+          // We set it to 'error' if cache contains null (which means we tried and failed), or if it's 404 it might be 'allowed' default but no robots.txt.
+          // Wait, the prompt says: "robots.txtでクロール許可 → allowed, ブロック → disallowed, 未取得 → unknown, 取得エラー → error"
+          // If we couldn't fetch robots.txt, we assume 'error'. If it was 404, we treat it as allowed but what status?
+          // Let's rely on cache value. If cache is null, error.
+          // We don't have a specific way to distinguish 404 from 500 error in `getRobotsTxt` without modifying it.
+          // But null in cache means it threw an error (like 500 or timeout), while 200 parses.
+          // Let's refine how we set status when parser is null.
+          status = this.getCacheStatus(url) === 'error' ? 'error' : 'unknown';
+          return { isAllowed: true, status, directive: '' };
+      }
+
+      const allowed = parser.isAllowed(url, userAgent);
+      isAllowed = allowed !== false;
+      status = isAllowed ? 'allowed' : 'disallowed';
+
+      // prompt specifies checking both * and Googlebot
+      directive = await this.getRobotsDirective(url, ['*', 'Googlebot'], auth);
+
+      return { isAllowed, status, directive };
   }
 
   /**

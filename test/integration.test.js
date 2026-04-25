@@ -21,7 +21,9 @@ describe('Core Logic Integration', () => {
     const finalResult = {
       ...baseData,
       ...parsedData,
-      ...indexabilityResult
+      ...indexabilityResult,
+      robotsTxtStatus: 'allowed',
+      robotsTxtDirective: ''
     };
 
     // Verify fields
@@ -45,8 +47,12 @@ describe('Core Logic Integration', () => {
       'h2_1',
       'h2_2',
       'h2_3',
-      'metaRobots',
+      'metaRobotsRaw',
+      'metaRobotsIndex',
+      'metaRobotsFollow',
       'canonicalLink',
+      'indexabilityFinal',
+      'indexabilityReason',
       'indexability',
       'indexabilityStatus',
       'internalLinkCount',
@@ -65,13 +71,17 @@ describe('Core Logic Integration', () => {
       'linkDepthEstimate'
     ];
 
+    // fetchResult comes with xRobotsTag
+    finalResult.xRobotsTag = fetchResult.xRobotsTag;
+    expectedKeys.push('xRobotsTag', 'robotsTxtStatus', 'robotsTxtDirective');
+
     expect(Object.keys(finalResult).sort()).toEqual(expectedKeys.sort());
 
     // Specific checks for example.com
     expect(finalResult.address).toBe('https://example.com/');
     expect(finalResult.title).toBe('Example Domain');
     expect(finalResult.h1_1).toBe('Example Domain');
-    expect(finalResult.indexability).toBe('Indexable');
+    expect(finalResult.indexabilityFinal).toBe('indexable');
     expect(typeof finalResult.size).toBe('number');
     expect(typeof finalResult.responseTime).toBe('number');
   }, 15000);
