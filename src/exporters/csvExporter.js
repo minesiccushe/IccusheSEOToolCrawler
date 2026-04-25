@@ -17,7 +17,10 @@ export function exportToCsv(data, filePath) {
     const columns = [
       'address', 'contentType', 'statusCode', 'status', 'indexability', 'indexabilityStatus',
       'title', 'metaDescription', 'metaKeywords', 'h1_1', 'h1_2', 'h2_1', 'h2_2', 'h2_3',
-      'metaRobots', 'canonicalLink', 'size', 'transferred', 'totalTransferred', 'responseTime'
+      'metaRobots', 'canonicalLink', 'size', 'transferred', 'totalTransferred', 'responseTime',
+      'structuredDataExists', 'structuredDataCount', 'structuredDataTypes', 'structuredDataJsonLdCount',
+      'structuredDataMicrodataCount', 'structuredDataRdfaCount', 'structuredDataInvalidCount',
+      'structuredDataPrimaryType', 'hasBreadcrumbList', 'hasFAQ', 'hasArticle', 'hasProduct', 'hasOrganization'
     ];
 
     stringify(data, {
