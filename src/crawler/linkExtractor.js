@@ -38,7 +38,13 @@ export function extractLinks(html, baseUrl) {
 
     try {
       // 相対パスを絶対URLに変換
-      const urlObj = new URL(href, baseUrl);
+      let urlObj = new URL(href, baseUrl);
+
+      // 相対パス（または同一ホストでの絶対パス）の場合は、抽出元のスキーマ（プロトコル）を強制的に引き継ぐ
+      // これにより、http/httpsの混在による重複を防止する
+      if (urlObj.hostname === baseObj.hostname) {
+        urlObj.protocol = baseObj.protocol;
+      }
       
       // 同一ホスト名のみを対象とする
       if (urlObj.hostname !== baseHostname) {

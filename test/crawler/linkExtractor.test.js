@@ -38,8 +38,8 @@ describe('linkExtractor.js のテスト', () => {
     expect(links).toContain('https://example.com/internal');
     expect(links).not.toContain('https://google.com/');
     expect(links).not.toContain('https://external.com/schemaless');
-    // プロトコル違い（http -> https）は同一ホスト名なら許可するかどうか。今回はホスト名が一致すればOKとする。
-    expect(links).toContain('http://example.com/http-link');
+    // プロトコル違い（http -> https）は同一ホスト名の場合は、抽出元のスキーマに強制的に統一される。
+    expect(links).toContain('https://example.com/http-link');
   });
 
   test('無効なプロトコルやアンカー（#）のみのリンクを除外・正規化する', () => {

@@ -220,10 +220,20 @@ export class CrawlManager extends EventEmitter {
     if (this.visited.has(sitemapUrl)) return;
     
     try {
+      const sitemapUrlObj = new URL(sitemapUrl);
       const fetchResult = await fetchUrl(sitemapUrl, this.auth);
       if (fetchResult.success && fetchResult.html) {
         const urls = parseSitemap(fetchResult.html);
-        for (const url of urls) {
+        for (let url of urls) {
+          try {
+            const u = new URL(url);
+            // サイトマップ自体のプロトコルを各URLに強制的に引き継ぐ
+            // これにより、http/httpsの混在による重複を防止する
+            if (u.hostname === sitemapUrlObj.hostname) {
+              u.protocol = sitemapUrlObj.protocol;
+              url = u.href;
+            }
+          } catch (e) {}
           this.enqueue(url);
         }
       }
