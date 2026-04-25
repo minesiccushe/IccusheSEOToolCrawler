@@ -44,6 +44,7 @@ describe('Core Logic Integration', () => {
       'h2_3',
       'metaRobots',
       'canonicalLink',
+      'redirectUrl',
       'indexability',
       'indexabilityStatus'
     ];

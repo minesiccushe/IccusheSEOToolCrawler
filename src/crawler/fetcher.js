@@ -33,6 +33,7 @@ export async function fetchUrl(url, auth = null) {
     const requestOptions = {
       responseType: 'arraybuffer', // バイナリとして取得し、正確なサイズを計算
       validateStatus: () => true,  // 4xx, 5xx系でも例外を投げず処理を継続（axios-retryを使用する場合は注意が必要だが、validateStatusがtrueでもretryConditionが優先される場合がある）
+      maxRedirects: 0,             // リダイレクトを自動追従しない
       timeout: 15000,              // 15秒でタイムアウト
       headers: {
         'User-Agent': DEFAULT_USER_AGENT
@@ -48,6 +49,7 @@ export async function fetchUrl(url, auth = null) {
     const responseTime = Date.now() - startTime;
     const statusCode = response.status;
     
+    const redirectUrl = response.headers.location || '';
     // Node.jsのaxiosでは statusText が空になる場合があるため、標準的なステータスがある前提とする
     const status = response.statusText || getStatusText(statusCode);
     const contentType = response.headers['content-type'] || '';
@@ -108,6 +110,7 @@ export async function fetchUrl(url, auth = null) {
       contentType,
       statusCode,
       status,
+      redirectUrl,
       size,
       transferred,
       totalTransferred,
@@ -122,6 +125,7 @@ export async function fetchUrl(url, auth = null) {
       contentType: '',
       statusCode: error.response?.status || 0,
       status: error.code || 'Error',
+      redirectUrl: '',
       size: 0,
       transferred: 0,
       totalTransferred: 0,

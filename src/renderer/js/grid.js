@@ -11,6 +11,7 @@ export function initGrid(containerSelector) {
       { title: "Address", field: "address", width: 300, frozen: true },
       { title: "Status Code", field: "statusCode", width: 100 },
       { title: "Status", field: "status", width: 120 },
+      { title: "Redirect URL", field: "redirectUrl", width: 250, visible: false },
       { title: "Indexability", field: "indexability", width: 120 },
       { title: "Indexability Status", field: "indexabilityStatus", width: 150 },
       { title: "Title", field: "title", width: 250 },

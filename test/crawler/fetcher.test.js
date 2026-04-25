@@ -35,6 +35,7 @@ describe('fetcher.js のテスト', () => {
     expect(result.contentType).toBe('text/html; charset=utf-8');
     expect(result.html).toBe(mockHtml);
     expect(result.size).toBe(Buffer.byteLength(mockHtml));
+    expect(result.redirectUrl).toBe('');
     // ヘッダサイズ計算のロジックが組み込まれているため totalTransferred は size より大きくなる
     expect(result.totalTransferred).toBeGreaterThan(result.size);
     expect(typeof result.responseTime).toBe('number');
@@ -111,6 +112,25 @@ describe('fetcher.js のテスト', () => {
     expect(result.success).toBe(false);
     expect(result.statusCode).toBe(404);
     expect(result.status).toBe('ERR_BAD_REQUEST');
+  });
+
+  test('3xxリダイレクトで、locationヘッダが存在する場合にredirectUrlがセットされること', async () => {
+    const mockResponse = {
+      status: 301,
+      statusText: 'Moved Permanently',
+      headers: {
+        location: 'https://example.com/redirected'
+      },
+      data: Buffer.from('')
+    };
+
+    jest.spyOn(axios, 'get').mockResolvedValue(mockResponse);
+
+    const result = await fetchUrl('http://example.com');
+
+    expect(result.success).toBe(true);
+    expect(result.statusCode).toBe(301);
+    expect(result.redirectUrl).toBe('https://example.com/redirected');
   });
 
   test('Basic認証情報が提供された場合、axiosのオプションにauthが含まれること', async () => {

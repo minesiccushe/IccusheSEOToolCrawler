@@ -142,6 +142,7 @@ export class CrawlManager extends EventEmitter {
           contentType: fetchResult.contentType,
           statusCode: fetchResult.statusCode,
           status: fetchResult.status,
+          redirectUrl: fetchResult.redirectUrl || '',
           size: fetchResult.size,
           transferred: fetchResult.transferred,
           totalTransferred: fetchResult.totalTransferred,
@@ -150,21 +151,40 @@ export class CrawlManager extends EventEmitter {
           indexabilityStatus: ''
         };
 
-        if (fetchResult.success && fetchResult.html) {
-          // HTMLのパース
-          const parsedData = parseHtml(fetchResult.html);
-          
-          // Indexabilityの評価
-          const indexabilityResult = evaluateIndexability(fetchResult.statusCode, parsedData, url);
-          
-          Object.assign(rowData, parsedData, indexabilityResult);
+        if (fetchResult.success) {
+          if (fetchResult.statusCode >= 300 && fetchResult.statusCode < 400 && fetchResult.redirectUrl) {
+            // Handle redirect
+            const indexabilityResult = evaluateIndexability(fetchResult.statusCode, {}, url);
+            Object.assign(rowData, indexabilityResult);
 
-          // リンクの抽出とキュー追加（Spiderモードの場合のみ）
-          if (this.mode === 'spider') {
-            const newLinks = extractLinks(fetchResult.html, url);
-            for (const link of newLinks) {
-              this.enqueue(link);
+            if (this.mode === 'spider') {
+              try {
+                // Resolve relative redirect URL
+                const targetUrlObj = new URL(fetchResult.redirectUrl, url);
+                this.enqueue(targetUrlObj.href);
+              } catch(e) {
+                // Ignore invalid redirect URL
+              }
             }
+          } else if (fetchResult.html) {
+            // HTMLのパース
+            const parsedData = parseHtml(fetchResult.html);
+
+            // Indexabilityの評価
+            const indexabilityResult = evaluateIndexability(fetchResult.statusCode, parsedData, url);
+
+            Object.assign(rowData, parsedData, indexabilityResult);
+
+            // リンクの抽出とキュー追加（Spiderモードの場合のみ）
+            if (this.mode === 'spider') {
+              const newLinks = extractLinks(fetchResult.html, url);
+              for (const link of newLinks) {
+                this.enqueue(link);
+              }
+            }
+          } else {
+            const indexabilityResult = evaluateIndexability(fetchResult.statusCode, {}, url);
+            Object.assign(rowData, indexabilityResult);
           }
         } else {
           // fetch失敗時などのIndexability
