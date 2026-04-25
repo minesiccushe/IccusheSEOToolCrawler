@@ -1,6 +1,11 @@
 // grid.js
 
 let table = null;
+let onRowClickCallback = null;
+
+export function setOnRowClick(callback) {
+  onRowClickCallback = callback;
+}
 
 export function initGrid(containerSelector) {
   table = new Tabulator(containerSelector, {
@@ -31,6 +36,11 @@ export function initGrid(containerSelector) {
       { title: "Transferred", field: "transferred", width: 100, visible: false },
       { title: "Total Transferred", field: "totalTransferred", width: 120, visible: false },
     ],
+    rowClick: function(e, row) {
+      if (onRowClickCallback) {
+        onRowClickCallback(row.getData());
+      }
+    },
     rowContextMenu: [
       {
         label: "URLをコピー",

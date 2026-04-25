@@ -61,7 +61,16 @@
     
     <main class="main-content">
       <div id="data-grid"></div>
+      <div id="detail-view" class="hidden">
+        <div class="detail-placeholder">アイテムを選択して詳細を表示</div>
+        <div id="detail-content"></div>
+      </div>
     </main>
+  </div>
+
+  <div id="detail-context-menu" class="context-menu hidden">
+    <div class="menu-item" id="menu-copy">コピー</div>
+    <div class="menu-item hidden" id="menu-open-url">ブラウザで開く</div>
   </div>
 
   <script src="../../node_modules/tabulator-tables/dist/js/tabulator.min.js"></script>

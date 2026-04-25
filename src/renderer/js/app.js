@@ -1,7 +1,9 @@
-import { initGrid, addRow, clearGrid, getData, getColumnsInfo, toggleColumnVisibility, setMediaTypeFilter } from './grid.js';
+import { initGrid, addRow, clearGrid, getData, getColumnsInfo, toggleColumnVisibility, setMediaTypeFilter, setOnRowClick } from './grid.js';
+import { showDetail } from './detailView.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   initGrid("#data-grid");
+  setOnRowClick(showDetail);
 
   const btnStart = document.getElementById('btn-start');
   const btnPause = document.getElementById('btn-pause');
@@ -151,6 +153,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateUIState(true, false);
     btnExport.disabled = true;
     clearGrid();
+    showDetail(null);
     
     progressBar.style.width = '0%';
     progressText.textContent = '0 / 0';
