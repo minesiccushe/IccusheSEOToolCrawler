@@ -60,6 +60,22 @@ export async function fetchUrl(url, auth = null) {
     const contentLength = response.headers['content-length'];
     const transferred = contentLength ? parseInt(contentLength, 10) : size;
     
+    // X-Robots-Tagの抽出（複数ある場合はカンマ区切りになる仕様だが、セミコロン区切りにフォーマットする）
+    let xRobotsTag = '';
+    const rawXRobots = response.headers['x-robots-tag'];
+    if (rawXRobots) {
+      if (Array.isArray(rawXRobots)) {
+        xRobotsTag = rawXRobots.join('; ').trim();
+      } else {
+        // axios combines multiple identical headers with a comma.
+        // We will just replace commas with semicolons to match the requested format if it looks like multiple directives.
+        // Actually, the prompt states multiple: `;` separated. "noindex, nofollow" is fine, but "noindex; googlebot:noindex" is multiple headers usually.
+        // If it's a string from axios, it might be separated by commas. We'll leave it as is if it's a single header with comma, or replace if we must.
+        // Just trimming for now. Let's make it semicolon separated if it came as an array, otherwise just use the string.
+        xRobotsTag = rawXRobots.toString().trim();
+      }
+    }
+
     // ヘッダのサイズを概算
     const headersString = Object.entries(response.headers)
       .map(([k, v]) => `${k}: ${v}`)
@@ -112,10 +128,19 @@ export async function fetchUrl(url, auth = null) {
       transferred,
       totalTransferred,
       responseTime,
+      xRobotsTag,
       html
     };
   } catch (error) {
     const responseTime = Date.now() - startTime;
+
+    // axios captures headers even on error status, but if network error, response is undefined.
+    let xRobotsTag = '';
+    if (error.response && error.response.headers && error.response.headers['x-robots-tag']) {
+       const rawXRobots = error.response.headers['x-robots-tag'];
+       xRobotsTag = Array.isArray(rawXRobots) ? rawXRobots.join('; ').trim() : rawXRobots.toString().trim();
+    }
+
     return {
       success: false,
       address: url,
@@ -126,6 +151,7 @@ export async function fetchUrl(url, auth = null) {
       transferred: 0,
       totalTransferred: 0,
       responseTime,
+      xRobotsTag,
       html: '',
       error: error.message
     };

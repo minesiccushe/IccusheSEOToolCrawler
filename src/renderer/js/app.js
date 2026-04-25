@@ -1,7 +1,9 @@
-import { initGrid, addRow, clearGrid, getData, getColumnsInfo, toggleColumnVisibility, setMediaTypeFilter } from './grid.js';
+import { initGrid, addRow, clearGrid, getData, getColumnsInfo, toggleColumnVisibility, setMediaTypeFilter, setOnRowClick } from './grid.js';
+import { showDetail } from './detailView.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   initGrid("#data-grid");
+  setOnRowClick(showDetail);
 
   const btnStart = document.getElementById('btn-start');
   const btnPause = document.getElementById('btn-pause');
@@ -136,7 +138,14 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
       // 改行で分割して空行を除外
-      targetUrls = listText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+      const lines = listText.split('\n');
+      targetUrls = [];
+      for (let i = 0; i < lines.length; i++) {
+        const trimmed = lines[i].trim();
+        if (trimmed.length > 0) {
+          targetUrls.push(trimmed);
+        }
+      }
     }
     
     const concurrency = parseInt(concurrencyInput.value, 10) || 5;
@@ -151,6 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateUIState(true, false);
     btnExport.disabled = true;
     clearGrid();
+    showDetail(null);
     
     progressBar.style.width = '0%';
     progressText.textContent = '0 / 0';
@@ -204,6 +214,19 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (error) {
       console.error(error);
       alert('IPC Error during export.');
+    }
+  });
+
+  // アクセシビリティ：ショートカットキー
+  urlInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !btnStart.disabled) {
+      btnStart.click();
+    }
+  });
+
+  listInput.addEventListener('keydown', (e) => {
+    if (e.ctrlKey && e.key === 'Enter' && !btnStart.disabled) {
+      btnStart.click();
     }
   });
 

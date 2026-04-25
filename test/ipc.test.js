@@ -31,7 +31,7 @@ jest.unstable_mockModule('electron', () => {
       writeText: jest.fn()
     },
     shell: {
-      openExternal: jest.fn()
+      openExternal: jest.fn().mockResolvedValue()
     }
   };
 });

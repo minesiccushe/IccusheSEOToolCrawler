@@ -11,7 +11,7 @@ describe('Core Logic Integration', () => {
     expect(fetchResult.statusCode).toBe(200);
     
     // 2. Parse HTML
-    const parsedData = parseHtml(fetchResult.html);
+    const parsedData = parseHtml(fetchResult.html, targetUrl);
     
     // 3. Evaluate Indexability
     const indexabilityResult = evaluateIndexability(fetchResult.statusCode, parsedData, fetchResult.address);
@@ -21,7 +21,9 @@ describe('Core Logic Integration', () => {
     const finalResult = {
       ...baseData,
       ...parsedData,
-      ...indexabilityResult
+      ...indexabilityResult,
+      robotsTxtStatus: 'allowed',
+      robotsTxtDirective: ''
     };
 
     // Verify fields
@@ -48,11 +50,33 @@ describe('Core Logic Integration', () => {
       'h2_1',
       'h2_2',
       'h2_3',
-      'metaRobots',
+      'metaRobotsRaw',
+      'metaRobotsIndex',
+      'metaRobotsFollow',
       'canonicalLink',
+      'indexabilityFinal',
+      'indexabilityReason',
       'indexability',
-      'indexabilityStatus'
+      'indexabilityStatus',
+      'internalLinkCount',
+      'externalLinkCount',
+      'internalNofollowCount',
+      'externalNofollowCount',
+      'internalLinkUrls',
+      'externalLinkUrls',
+      'internalAnchorTexts',
+      'externalAnchorTexts',
+      'internalLinkUniqueCount',
+      'externalLinkUniqueCount',
+      'selfLinkCount',
+      'hasBreadcrumbLink',
+      'linkToTopPage',
+      'linkDepthEstimate'
     ];
+
+    // fetchResult comes with xRobotsTag
+    finalResult.xRobotsTag = fetchResult.xRobotsTag;
+    expectedKeys.push('xRobotsTag', 'robotsTxtStatus', 'robotsTxtDirective');
 
     expect(Object.keys(finalResult).sort()).toEqual(expectedKeys.sort());
 
@@ -60,7 +84,7 @@ describe('Core Logic Integration', () => {
     expect(finalResult.address).toBe('https://example.com/');
     expect(finalResult.title).toBe('Example Domain');
     expect(finalResult.h1_1).toBe('Example Domain');
-    expect(finalResult.indexability).toBe('Indexable');
+    expect(finalResult.indexabilityFinal).toBe('indexable');
     expect(typeof finalResult.size).toBe('number');
     expect(typeof finalResult.responseTime).toBe('number');
   }, 15000);

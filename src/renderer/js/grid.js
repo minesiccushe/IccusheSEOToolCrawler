@@ -1,6 +1,11 @@
 // grid.js
 
 let table = null;
+let onRowClickCallback = null;
+
+export function setOnRowClick(callback) {
+  onRowClickCallback = callback;
+}
 
 export function initGrid(containerSelector) {
   table = new Tabulator(containerSelector, {
@@ -11,14 +16,20 @@ export function initGrid(containerSelector) {
       { title: "Address", field: "address", width: 300, frozen: true },
       { title: "Status Code", field: "statusCode", width: 100 },
       { title: "Status", field: "status", width: 120 },
-      { title: "Indexability", field: "indexability", width: 120 },
-      { title: "Indexability Status", field: "indexabilityStatus", width: 150 },
+      { title: "Indexability Final", field: "indexabilityFinal", width: 150 },
+      { title: "Indexability Reason", field: "indexabilityReason", width: 200 },
       { title: "Title", field: "title", width: 250 },
       { title: "Response Time (ms)", field: "responseTime", width: 150, hozAlign: "right" },
       { title: "Size (bytes)", field: "size", width: 100, hozAlign: "right" },
       
       // Fields hidden by default for better visibility
       { title: "Content Type", field: "contentType", width: 120, visible: false },
+      { title: "Robots Txt Status", field: "robotsTxtStatus", width: 150, visible: false },
+      { title: "Robots Txt Directive", field: "robotsTxtDirective", width: 200, visible: false },
+      { title: "X-Robots-Tag", field: "xRobotsTag", width: 150, visible: false },
+      { title: "Meta Robots Index", field: "metaRobotsIndex", width: 150, visible: false },
+      { title: "Meta Robots Follow", field: "metaRobotsFollow", width: 150, visible: false },
+      { title: "Meta Robots Raw", field: "metaRobotsRaw", width: 200, visible: false },
       { title: "Meta Description", field: "metaDescription", width: 250, visible: false },
       { title: "Meta Keywords", field: "metaKeywords", width: 150, visible: false },
       { title: "H1-1", field: "h1_1", width: 150, visible: false },
@@ -26,11 +37,25 @@ export function initGrid(containerSelector) {
       { title: "H2-1", field: "h2_1", width: 150, visible: false },
       { title: "H2-2", field: "h2_2", width: 150, visible: false },
       { title: "H2-3", field: "h2_3", width: 150, visible: false },
-      { title: "Meta Robots", field: "metaRobots", width: 150, visible: false },
       { title: "Canonical Link", field: "canonicalLink", width: 200, visible: false },
       { title: "Transferred", field: "transferred", width: 100, visible: false },
       { title: "Total Transferred", field: "totalTransferred", width: 120, visible: false },
 
+      // New columns for links and structures
+      { title: "Internal Link Count", field: "internalLinkCount", width: 120, visible: false, hozAlign: "right" },
+      { title: "External Link Count", field: "externalLinkCount", width: 120, visible: false, hozAlign: "right" },
+      { title: "Internal Nofollow Count", field: "internalNofollowCount", width: 130, visible: false, hozAlign: "right" },
+      { title: "External Nofollow Count", field: "externalNofollowCount", width: 130, visible: false, hozAlign: "right" },
+      { title: "Internal Link URLs", field: "internalLinkUrls", width: 200, visible: false },
+      { title: "External Link URLs", field: "externalLinkUrls", width: 200, visible: false },
+      { title: "Internal Anchor Texts", field: "internalAnchorTexts", width: 200, visible: false },
+      { title: "External Anchor Texts", field: "externalAnchorTexts", width: 200, visible: false },
+      { title: "Internal Link Unique Count", field: "internalLinkUniqueCount", width: 150, visible: false, hozAlign: "right" },
+      { title: "External Link Unique Count", field: "externalLinkUniqueCount", width: 150, visible: false, hozAlign: "right" },
+      { title: "Self Link Count", field: "selfLinkCount", width: 120, visible: false, hozAlign: "right" },
+      { title: "Has Breadcrumb Link", field: "hasBreadcrumbLink", width: 120, visible: false },
+      { title: "Link To Top Page", field: "linkToTopPage", width: 120, visible: false },
+      { title: "Link Depth Estimate", field: "linkDepthEstimate", width: 120, visible: false, hozAlign: "right" },
       // Structured Data Fields
       { title: "SD Exists", field: "structuredDataExists", width: 100, visible: false },
       { title: "SD Count", field: "structuredDataCount", width: 100, visible: false },
@@ -63,7 +88,14 @@ export function initGrid(containerSelector) {
       },
     ],
   });
+
+  table.on("rowClick", function(e, row) {
+    if (onRowClickCallback) {
+      onRowClickCallback(row.getData());
+    }
+  });
 }
+
 
 export function addRow(data) {
   if (table) {
