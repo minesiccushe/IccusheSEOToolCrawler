@@ -26,6 +26,16 @@ describe('Indexability Evaluator', () => {
     expect(result).toEqual({ indexabilityFinal: 'non-indexable', indexabilityReason: 'meta_noindex' });
   });
 
+  it('should return non-indexable for uppercase NOINDEX meta robots', () => {
+    const result = evaluateIndexability(200, { metaRobotsRaw: 'NOINDEX, NOFOLLOW' }, 'https://example.com/test');
+    expect(result).toEqual({ indexabilityFinal: 'non-indexable', indexabilityReason: 'meta_noindex' });
+  });
+
+  it('should return non-indexable for mixed case NoIndex meta robots', () => {
+    const result = evaluateIndexability(200, { metaRobotsRaw: 'NoIndex, NoFollow' }, 'https://example.com/test');
+    expect(result).toEqual({ indexabilityFinal: 'non-indexable', indexabilityReason: 'meta_noindex' });
+  });
+
   it('should return non-indexable for blocked by robots.txt', () => {
     const result = evaluateIndexability(200, {}, 'https://example.com/test', { status: 'disallowed' });
     expect(result).toEqual({ indexabilityFinal: 'non-indexable', indexabilityReason: 'robots_txt_block' });
@@ -33,6 +43,11 @@ describe('Indexability Evaluator', () => {
 
   it('should return non-indexable for X-Robots-Tag noindex', () => {
     const result = evaluateIndexability(200, {}, 'https://example.com/test', {}, 'noindex');
+    expect(result).toEqual({ indexabilityFinal: 'non-indexable', indexabilityReason: 'x_robots_noindex' });
+  });
+
+  it('should return non-indexable for X-Robots-Tag uppercase NOINDEX', () => {
+    const result = evaluateIndexability(200, {}, 'https://example.com/test', {}, 'NOINDEX');
     expect(result).toEqual({ indexabilityFinal: 'non-indexable', indexabilityReason: 'x_robots_noindex' });
   });
 
