@@ -30,7 +30,7 @@ class RobotsHandler {
    */
   async getRobotsTxt(url, auth = null) {
     try {
-      const targetUrl = new URL(url);
+      const targetUrl = url instanceof URL ? url : new URL(url);
       const origin = targetUrl.origin;
       const robotsUrl = `${origin}/robots.txt`;
 
@@ -59,11 +59,12 @@ class RobotsHandler {
       this.cache.set(origin, parser);
       return parser;
     } catch (error) {
-      console.error(`Failed to fetch robots.txt for ${url}:`, error.message);
+      const urlStr = url instanceof URL ? url.href : url;
+      console.error(`Failed to fetch robots.txt for ${urlStr}:`, error.message);
       // エラー時はnullを返し、デフォルト許可とする。エラー状態のキャッシュは状況に応じて検討するが、今回はシンプルにnullをキャッシュしないでおくか、あるいはエラーもキャッシュするか。
       // パフォーマンスを考慮し、エラー（不正URL等）の場合もnullとしてキャッシュする。
       try {
-         const origin = new URL(url).origin;
+         const origin = url instanceof URL ? url.origin : new URL(url).origin;
          this.cache.set(origin, null);
       } catch (e) {
          // 無効なURLの場合
@@ -156,19 +157,20 @@ class RobotsHandler {
    * @returns {Promise<boolean>} 許可されていればtrue、拒否されていればfalse (取得失敗や404はtrueを返す)
    */
   async isAllowed(url, userAgent = '*', auth = null) {
+    let parsedUrl;
     try {
       // URLの妥当性チェック
-      new URL(url);
+      parsedUrl = new URL(url);
     } catch (e) {
       return false; // 無効なURLはクロール不可とする
     }
 
-    const parser = await this.getRobotsTxt(url, auth);
+    const parser = await this.getRobotsTxt(parsedUrl, auth);
     if (!parser) {
       return true; // robots.txtが存在しない、または取得失敗した場合はデフォルトで許可
     }
 
-    const allowed = parser.isAllowed(url, userAgent);
+    const allowed = parser.isAllowed(parsedUrl.href, userAgent);
     // undefined の場合も許可とみなす
     return allowed !== false;
   }
