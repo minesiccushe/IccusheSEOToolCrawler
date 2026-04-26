@@ -13,9 +13,11 @@ jest.unstable_mockModule('../../src/crawler/linkExtractor.js', () => ({
 }));
 jest.unstable_mockModule('../../src/crawler/robotsHandler.js', () => ({
   default: {
-    evaluate: jest.fn().mockResolvedValue({ isAllowed: true, status: 'allowed', directive: '' }),
-    getCrawlDelay: jest.fn().mockResolvedValue(0),
-    getSitemaps: jest.fn().mockResolvedValue([])
+    getRules: jest.fn().mockResolvedValue({
+      evaluate: jest.fn().mockReturnValue({ isAllowed: true, status: 'allowed', directive: '' }),
+      getCrawlDelay: jest.fn().mockReturnValue(0),
+      getSitemaps: jest.fn().mockReturnValue([])
+    })
   }
 }));
 
@@ -168,7 +170,11 @@ describe('CrawlManager のテスト', () => {
   });
 
   test('robots.txtでブロックされた場合はクロールされずNon-Indexableとなる', async () => {
-    robotsHandler.evaluate.mockResolvedValueOnce({ isAllowed: false, status: 'disallowed', directive: 'User-agent: * Disallow: /' }); // 次の1回だけブロック
+    robotsHandler.getRules.mockResolvedValueOnce({
+      evaluate: jest.fn().mockReturnValue({ isAllowed: false, status: 'disallowed', directive: 'User-agent: * Disallow: /' }),
+      getCrawlDelay: jest.fn().mockReturnValue(0),
+      getSitemaps: jest.fn().mockReturnValue([])
+    }); // 次の1回だけブロック
 
     const manager = new CrawlManager({ requestDelay: 0 });
     const results = await manager.start('http://example.com/blocked');
