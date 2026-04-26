@@ -80,9 +80,12 @@ export class CrawlManager extends EventEmitter {
         const urlObj = new URL(url);
         const origin = urlObj.origin;
 
+        // 取得したURLに対するrobots.txtのルールを一括取得（パフォーマンス改善）
+        const robotsRules = await robotsHandler.getRules(url, this.auth);
+
         // 初めてのドメインの場合、Sitemapの自動検出を試みる（Spiderモードのみ）
         if (this.mode === 'spider' && !this.lastRequestTimes.has(origin)) {
-          const sitemapUrls = await robotsHandler.getSitemaps(url, this.auth);
+          const sitemapUrls = robotsRules.getSitemaps();
           for (const sitemapUrl of sitemapUrls) {
             // サイトマップ自体の処理もキューに追加する
             this.queue.add(() => this.processSitemap(sitemapUrl));
@@ -90,9 +93,9 @@ export class CrawlManager extends EventEmitter {
         }
 
         // robots.txt の許可チェックと Crawl-delay の取得
-        const robotsResult = await robotsHandler.evaluate(url, this.userAgent, this.auth);
+        const robotsResult = robotsRules.evaluate(this.userAgent);
         const isAllowed = robotsResult.isAllowed;
-        const robotsDelay = await robotsHandler.getCrawlDelay(url, this.userAgent, this.auth);
+        const robotsDelay = robotsRules.getCrawlDelay(this.userAgent);
 
         // 1. robots.txt の Crawl-delay を尊重するためのドメイン単位インターバル待機
         const lastTime = this.lastRequestTimes.get(origin) || 0;

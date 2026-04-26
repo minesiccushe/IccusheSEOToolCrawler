@@ -191,6 +191,80 @@ class RobotsHandler {
   }
 
   /**
+   * 単一のURLに対するrobots.txtのルール一式を返す。
+   * これにより、複数メソッド（evaluate, getCrawlDelay, getSitemaps）呼び出し時の
+   * URLパースやキャッシュ参照の重複を防ぎ、パフォーマンスを向上させる。
+   * @param {string} url - チェック対象のURL
+   * @param {Object} [auth=null] - 認証情報
+   * @returns {Promise<Object>} urlに対するルール評価オブジェクト
+   */
+  async getRules(url, auth = null) {
+    let isInvalidUrl = false;
+    try {
+      new URL(url);
+    } catch (e) {
+      isInvalidUrl = true;
+    }
+
+    // preFetchStatus evaluation logic mirrors what was in evaluate()
+    const cacheStatus = isInvalidUrl ? 'error' : this.getCacheStatus(url);
+    const parser = isInvalidUrl ? null : await this.getRobotsTxt(url, auth);
+
+    return {
+      isAllowed: (userAgent = '*') => {
+        if (isInvalidUrl) return false;
+        if (!parser) return true;
+        return parser.isAllowed(url, userAgent) !== false;
+      },
+      evaluate: (userAgent = '*') => {
+        if (isInvalidUrl) return { isAllowed: false, status: 'error', directive: '' };
+
+        let isAllowed = true;
+        let status = 'unknown';
+        let directive = '';
+
+        if (!parser) {
+          status = cacheStatus === 'error' ? 'error' : 'unknown';
+          return { isAllowed: true, status, directive: '' };
+        }
+
+        const allowed = parser.isAllowed(url, userAgent);
+        isAllowed = allowed !== false;
+        status = isAllowed ? 'allowed' : 'disallowed';
+
+        const directives = [];
+        for (const ua of ['*', 'Googlebot']) {
+          const lineNum = parser.getMatchingLineNumber(url, ua);
+          if (lineNum !== undefined && lineNum > 0) {
+            const uaKey = ua.toLowerCase();
+            const rules = parser._rules[uaKey] || parser._rules['*'];
+            if (rules) {
+              for (const rule of rules) {
+                if (rule.lineNumber === lineNum) {
+                  const dirType = rule.allow ? 'Allow' : 'Disallow';
+                  directives.push(`User-agent: ${ua} ${dirType}: ${rule.pattern}`);
+                }
+              }
+            }
+          }
+        }
+        directive = directives.join('; ');
+
+        return { isAllowed, status, directive };
+      },
+      getCrawlDelay: (userAgent = '*') => {
+        if (!parser) return 0;
+        const delay = parser.getCrawlDelay(userAgent);
+        return delay ? delay * 1000 : 0;
+      },
+      getSitemaps: () => {
+        if (!parser) return [];
+        return parser.getSitemaps();
+      }
+    };
+  }
+
+  /**
    * 指定したURLのオリジンにおける Sitemap URL のリストを取得する
    * @param {string} url - 対象URL
    * @param {Object} [auth=null] - 認証情報
