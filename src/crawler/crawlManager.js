@@ -100,7 +100,7 @@ export class CrawlManager extends EventEmitter {
         }
 
         // robots.txt の許可チェックと Crawl-delay の取得
-        const robotsResult = originRules.evaluate(url, this.userAgent);
+        const robotsResult = originRules.evaluate(urlObj, this.userAgent);
         const isAllowed = robotsResult.isAllowed;
         const robotsDelay = originRules.getCrawlDelay(this.userAgent);
 
