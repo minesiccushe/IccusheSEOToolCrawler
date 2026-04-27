@@ -86,7 +86,21 @@ describe('Core Logic Integration', () => {
       'canonicalRelative',
       'canonicalProtocolMismatch',
       'canonicalParameterMismatch',
-      'canonicalTrailingSlashMismatch'
+      'canonicalTrailingSlashMismatch',
+      'imageCount',
+      'imageUniqueCount',
+      'imageWithAltCount',
+      'imageWithoutAltCount',
+      'imageAltCoverageRate',
+      'imageEmptyAltCount',
+      'imageAltDuplicateCount',
+      'imageLargeFileCount',
+      'largestImageSize',
+      'imageLazyLoadCount',
+      'imageWithoutWidthHeightCount',
+      'imageExternalCount',
+      'imageInternalCount',
+      'imageFormats'
     ];
 
     // fetchResult comes with xRobotsTag

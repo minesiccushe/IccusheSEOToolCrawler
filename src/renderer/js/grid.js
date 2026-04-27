@@ -104,6 +104,22 @@ export function initGrid(containerSelector) {
       { title: "Has Article", field: "hasArticle", width: 100, visible: false },
       { title: "Has Product", field: "hasProduct", width: 100, visible: false },
       { title: "Has Organization", field: "hasOrganization", width: 130, visible: false },
+
+      // Image SEO Columns
+      { title: "Image Count", field: "imageCount", width: 120, visible: false, hozAlign: "right" },
+      { title: "Unique Image Count", field: "imageUniqueCount", width: 150, visible: false, hozAlign: "right" },
+      { title: "Images With Alt", field: "imageWithAltCount", width: 140, visible: false, hozAlign: "right" },
+      { title: "Images Without Alt", field: "imageWithoutAltCount", width: 160, visible: false, hozAlign: "right" },
+      { title: "Alt Coverage Rate", field: "imageAltCoverageRate", width: 150, visible: false, hozAlign: "right" },
+      { title: "Empty Alt Count", field: "imageEmptyAltCount", width: 140, visible: false, hozAlign: "right" },
+      { title: "Alt Duplicate Count", field: "imageAltDuplicateCount", width: 160, visible: false, hozAlign: "right" },
+      { title: "Large Images (>100KB)", field: "imageLargeFileCount", width: 160, visible: false, hozAlign: "right" },
+      { title: "Largest Image Size", field: "largestImageSize", width: 150, visible: false, hozAlign: "right" },
+      { title: "Lazy Load Count", field: "imageLazyLoadCount", width: 140, visible: false, hozAlign: "right" },
+      { title: "Without W/H Count", field: "imageWithoutWidthHeightCount", width: 160, visible: false, hozAlign: "right" },
+      { title: "External Image Count", field: "imageExternalCount", width: 160, visible: false, hozAlign: "right" },
+      { title: "Internal Image Count", field: "imageInternalCount", width: 160, visible: false, hozAlign: "right" },
+      { title: "Image Formats", field: "imageFormats", width: 150, visible: false },
     ],
     rowContextMenu: [
       {

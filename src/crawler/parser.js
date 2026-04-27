@@ -458,6 +458,97 @@ export function parseHtml(html, currentUrl = '') {
   const hasProduct = allTypes.has('Product');
   const hasOrganization = allTypes.has('Organization') || allTypes.has('LocalBusiness');
 
+  // Image SEO Analysis
+  let imageCount = 0;
+  let imageWithAltCount = 0;
+  let imageWithoutAltCount = 0;
+  let imageEmptyAltCount = 0;
+  let imageLazyLoadCount = 0;
+  let imageWithoutWidthHeightCount = 0;
+  let imageExternalCount = 0;
+  let imageInternalCount = 0;
+
+  const imageSrcs = new Set();
+  const altSeen = new Set();
+  let imageAltDuplicateCount = 0;
+  const imageFormatsSet = new Set();
+
+  $('img').each((_, el) => {
+    imageCount++;
+    const node = $(el);
+    let src = node.attr('src');
+    const dataSrc = node.attr('data-src');
+    
+    // srcがない、またはbase64などの場合はdata-srcを優先的にチェックする（LazyLoad対応）
+    if (!src || src.toLowerCase().startsWith('data:image')) {
+      if (dataSrc && !dataSrc.toLowerCase().startsWith('data:image')) {
+        src = dataSrc;
+      }
+    }
+
+    if (src) {
+      const trimmedSrc = src.trim();
+      if (!trimmedSrc || trimmedSrc.toLowerCase().startsWith('data:image')) {
+        // ignore data:image or empty src
+      } else {
+        try {
+          const urlObj = new URL(trimmedSrc, currentUrl || 'http://localhost');
+          const absoluteUrl = urlObj.href;
+          imageSrcs.add(absoluteUrl);
+          
+          const targetDomain = getDomain(urlObj.hostname);
+          const isInternal = baseDomain && targetDomain === baseDomain;
+          
+          if (isInternal) {
+            imageInternalCount++;
+          } else {
+            imageExternalCount++;
+          }
+          
+          const pathname = urlObj.pathname.toLowerCase();
+          const extMatch = pathname.match(/\.([^.]+)$/);
+          if (extMatch && extMatch[1]) {
+            imageFormatsSet.add(extMatch[1]);
+          }
+        } catch (e) {
+          // ignore invalid url
+        }
+      }
+    }
+
+    const alt = node.attr('alt');
+    if (alt === undefined) {
+      imageWithoutAltCount++;
+    } else {
+      imageWithAltCount++;
+      const trimmedAlt = alt.trim();
+      if (trimmedAlt === '') {
+        imageEmptyAltCount++;
+      } else {
+        if (altSeen.has(trimmedAlt)) {
+          imageAltDuplicateCount++;
+        } else {
+          altSeen.add(trimmedAlt);
+        }
+      }
+    }
+
+    const loading = node.attr('loading');
+    if (loading === 'lazy' || dataSrc !== undefined) {
+      imageLazyLoadCount++;
+    }
+
+    const width = node.attr('width');
+    const height = node.attr('height');
+    if (width === undefined && height === undefined) {
+      imageWithoutWidthHeightCount++;
+    }
+  });
+
+  const imageUniqueCount = imageSrcs.size;
+  const imageAltCoverageRate = imageCount > 0 ? Number((imageWithAltCount / imageCount).toFixed(2)) : 0;
+  const imageFormats = Array.from(imageFormatsSet).join('|');
+
   const extractedData = {
     title: $('title').text().trim(),
     metaDescription: getMetaContent('description'),
@@ -518,6 +609,22 @@ export function parseHtml(html, currentUrl = '') {
     hasArticle,
     hasProduct,
     hasOrganization,
+
+    // Image SEO Fields
+    imageCount,
+    imageUniqueCount,
+    imageWithAltCount,
+    imageWithoutAltCount,
+    imageAltCoverageRate,
+    imageEmptyAltCount,
+    imageAltDuplicateCount,
+    imageLargeFileCount: 0,
+    largestImageSize: 0,
+    imageLazyLoadCount,
+    imageWithoutWidthHeightCount,
+    imageExternalCount,
+    imageInternalCount,
+    imageFormats,
 
     // Canonical Detailed Fields
     ...(() => {
