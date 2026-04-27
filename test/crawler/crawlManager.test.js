@@ -103,7 +103,7 @@ describe('CrawlManager のテスト', () => {
       html: '<html></html>', size: 10, transferred: 10, totalTransferred: 50, responseTime: 100, contentType: 'text/html'
     });
     parser.parseHtml.mockReturnValue({});
-    parser.evaluateIndexability.mockReturnValue({ indexability: 'Indexable', indexabilityStatus: '' });
+    parser.evaluateIndexability.mockReturnValue({ indexabilityFinal: 'indexable', indexabilityReason: '' });
     
     // 無限にリンクを返す
     let counter = 0;
@@ -153,7 +153,7 @@ describe('CrawlManager のテスト', () => {
       html: '<html></html>', size: 10, transferred: 10, totalTransferred: 50, responseTime: 100, contentType: 'text/html'
     });
     parser.parseHtml.mockReturnValue({});
-    parser.evaluateIndexability.mockReturnValue({ indexability: 'Indexable', indexabilityStatus: '' });
+    parser.evaluateIndexability.mockReturnValue({ indexabilityFinal: 'indexable', indexabilityReason: '' });
     
     // spiderモードなら抽出されるはずのリンク
     linkExtractor.extractLinks.mockReturnValue(['http://example.com/extracted']);
