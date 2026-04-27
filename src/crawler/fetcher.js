@@ -1,3 +1,4 @@
+import http from 'http';
 import axios from 'axios';
 import axiosRetry from 'axios-retry';
 import jschardet from 'jschardet';
@@ -162,14 +163,5 @@ export async function fetchUrl(url, auth = null) {
  * 簡単なステータステキストのフォールバック
  */
 function getStatusText(code) {
-  const statuses = {
-    200: 'OK',
-    301: 'Moved Permanently',
-    302: 'Found',
-    403: 'Forbidden',
-    404: 'Not Found',
-    500: 'Internal Server Error',
-    503: 'Service Unavailable'
-  };
-  return statuses[code] || `Status ${code}`;
+  return http.STATUS_CODES[code] || `Status ${code}`;
 }
