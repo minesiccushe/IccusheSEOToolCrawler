@@ -108,6 +108,7 @@ function analyzeCanonical(canonicalHrefs, currentUrl) {
     }
 
   } catch (e) {
+    console.error(`Invalid URL encountered during canonical validation: ${e.message}`);
     result.canonicalStatus = 'invalid';
     result.canonicalType = 'invalid';
   }
@@ -256,7 +257,7 @@ export function parseHtml(html, currentUrl = '') {
         linkDepthEstimate = parts.length;
       }
     } catch (e) {
-      // Ignore URL parse error
+      console.error(`Invalid URL encountered during base URL parsing: ${e.message}`);
     }
   }
 
@@ -283,6 +284,7 @@ export function parseHtml(html, currentUrl = '') {
       };
       if (checkType(json)) hasBreadcrumbJsonLd = true;
     } catch (e) {
+      console.error(`Error parsing Breadcrumb JSON-LD: ${e.message}`);
     }
   });
 
@@ -406,6 +408,7 @@ export function parseHtml(html, currentUrl = '') {
           processItem(parsed);
       }
     } catch (e) {
+      console.error(`Error parsing Structured Data JSON-LD: ${e.message}`);
       structuredDataInvalidCount++;
     }
   });
@@ -511,7 +514,7 @@ export function parseHtml(html, currentUrl = '') {
             imageFormatsSet.add(extMatch[1]);
           }
         } catch (e) {
-          // ignore invalid url
+          console.error(`Invalid URL encountered during image URL parsing: ${e.message}`);
         }
       }
     }
