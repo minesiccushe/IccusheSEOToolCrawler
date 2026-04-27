@@ -90,4 +90,15 @@ describe('Indexability Evaluator', () => {
     const result3 = evaluateIndexability(200, { canonicalLink: 'https://example.com/test' }, 'invalid-url-no-base');
     expect(result3).toEqual({ indexabilityFinal: 'indexable', indexabilityReason: '' });
   });
+
+  it('should return non-indexable when canonical link has different protocol', () => {
+    const result = evaluateIndexability(200, { canonicalLink: 'http://example.com/test' }, 'https://example.com/test');
+    expect(result).toEqual({ indexabilityFinal: 'non-indexable', indexabilityReason: 'canonical_to_other' });
+  });
+
+  it('should ignore invalid canonical link URLs and return indexable', () => {
+    // URL constructor throws if the input is an invalid absolute URL
+    const result = evaluateIndexability(200, { canonicalLink: 'http://[invalid-url]' }, 'https://example.com/test');
+    expect(result).toEqual({ indexabilityFinal: 'indexable', indexabilityReason: '' });
+  });
 });
