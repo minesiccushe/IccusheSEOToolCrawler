@@ -19,6 +19,7 @@ export class CrawlManager extends EventEmitter {
     this.requestDelay = options.requestDelay !== undefined ? options.requestDelay : 1000;
     this.queue = new PQueue({ concurrency: this.concurrency });
     this.visited = new Set();
+    this.originRobotsCache = new Map();
     this.lastRequestTimes = new Map(); // ドメインごとの最終リクエスト時刻管理
     this.results = [];
     this.isRunning = false;
@@ -34,6 +35,7 @@ export class CrawlManager extends EventEmitter {
     const urls = Array.isArray(startUrls) ? startUrls : [startUrls];
     this.baseUrl = urls.length > 0 ? urls[0] : '';
     this.visited.clear();
+    this.originRobotsCache.clear();
     this.lastRequestTimes.clear();
     this.results = [];
     this.isRunning = true;
@@ -81,12 +83,16 @@ export class CrawlManager extends EventEmitter {
         const urlObj = new URL(url);
         const origin = urlObj.origin;
 
-        // 取得したURLに対するrobots.txtのルールを一括取得（パフォーマンス改善）
-        const robotsRules = await robotsHandler.getRules(url, this.auth);
+        // 取得したURLのオリジンに対するrobots.txtのルールを一括取得してキャッシュ（パフォーマンス改善）
+        let originRules = this.originRobotsCache.get(origin);
+        if (!originRules) {
+          originRules = await robotsHandler.getOriginRules(origin, this.auth);
+          this.originRobotsCache.set(origin, originRules);
+        }
 
         // 初めてのドメインの場合、Sitemapの自動検出を試みる（Spiderモードのみ）
         if (this.mode === 'spider' && !this.lastRequestTimes.has(origin)) {
-          const sitemapUrls = robotsRules.getSitemaps();
+          const sitemapUrls = originRules.getSitemaps();
           for (const sitemapUrl of sitemapUrls) {
             // サイトマップ自体の処理もキューに追加する
             this.queue.add(() => this.processSitemap(sitemapUrl));
@@ -94,9 +100,9 @@ export class CrawlManager extends EventEmitter {
         }
 
         // robots.txt の許可チェックと Crawl-delay の取得
-        const robotsResult = robotsRules.evaluate(this.userAgent);
+        const robotsResult = originRules.evaluate(url, this.userAgent);
         const isAllowed = robotsResult.isAllowed;
-        const robotsDelay = robotsRules.getCrawlDelay(this.userAgent);
+        const robotsDelay = originRules.getCrawlDelay(this.userAgent);
 
         // 1. robots.txt の Crawl-delay を尊重するためのドメイン単位インターバル待機
         const lastTime = this.lastRequestTimes.get(origin) || 0;

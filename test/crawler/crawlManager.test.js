@@ -17,6 +17,11 @@ jest.unstable_mockModule('../../src/crawler/robotsHandler.js', () => ({
       evaluate: jest.fn().mockReturnValue({ isAllowed: true, status: 'allowed', directive: '' }),
       getCrawlDelay: jest.fn().mockReturnValue(0),
       getSitemaps: jest.fn().mockReturnValue([])
+    }),
+    getOriginRules: jest.fn().mockResolvedValue({
+      evaluate: jest.fn().mockReturnValue({ isAllowed: true, status: 'allowed', directive: '' }),
+      getCrawlDelay: jest.fn().mockReturnValue(0),
+      getSitemaps: jest.fn().mockReturnValue([])
     })
   }
 }));
@@ -170,7 +175,7 @@ describe('CrawlManager のテスト', () => {
   });
 
   test('robots.txtでブロックされた場合はクロールされずNon-Indexableとなる', async () => {
-    robotsHandler.getRules.mockResolvedValueOnce({
+    robotsHandler.getOriginRules.mockResolvedValueOnce({
       evaluate: jest.fn().mockReturnValue({ isAllowed: false, status: 'disallowed', directive: 'User-agent: * Disallow: /' }),
       getCrawlDelay: jest.fn().mockReturnValue(0),
       getSitemaps: jest.fn().mockReturnValue([])
