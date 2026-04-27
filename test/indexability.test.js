@@ -55,4 +55,14 @@ describe('Indexability Evaluator', () => {
     const result2 = evaluateIndexability(200, { canonicalLink: '/other' }, 'https://example.com/test');
     expect(result2).toEqual({ indexabilityFinal: 'non-indexable', indexabilityReason: 'canonical_to_other' });
   });
+
+  it('should ignore invalid URLs in canonical link validation', () => {
+    // Both URLs invalid
+    const result1 = evaluateIndexability(200, { canonicalLink: 'invalid-url-no-base' }, 'invalid-url-no-base');
+    expect(result1).toEqual({ indexabilityFinal: 'indexable', indexabilityReason: '' });
+
+    // Canonical URL valid, current URL invalid. The constructor new URL('valid', 'invalid') throws.
+    const result3 = evaluateIndexability(200, { canonicalLink: 'https://example.com/test' }, 'invalid-url-no-base');
+    expect(result3).toEqual({ indexabilityFinal: 'indexable', indexabilityReason: '' });
+  });
 });
