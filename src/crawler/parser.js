@@ -694,7 +694,7 @@ export function evaluateIndexability(statusCode, parsedData, currentUrl, robotsT
         reasons.push('canonical_to_other');
       }
     } catch (e) {
-      // Invalid URLs ignore canonical validation
+      console.error(`Invalid URL encountered during canonical validation: ${e.message}`);
     }
   }
 
