@@ -97,4 +97,20 @@ describe('linkExtractor.js のテスト', () => {
     
     expect(links.length).toBe(0);
   });
+
+  test('URLのパースに失敗するような不正なhrefは無視する', () => {
+    const html = `
+      <html>
+        <body>
+          <a href="http://">Invalid Protocol Only</a>
+          <a href="http://[1:2:3:4:5:6:7:8:9]">Invalid IPv6</a>
+          <a href="/valid">Valid Link</a>
+        </body>
+      </html>
+    `;
+    const links = extractLinks(html, baseUrl);
+
+    expect(links.length).toBe(1);
+    expect(links).toContain('https://example.com/valid');
+  });
 });
