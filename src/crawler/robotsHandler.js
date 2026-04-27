@@ -200,6 +200,78 @@ class RobotsHandler {
    * @param {Object} [auth=null] - 認証情報
    * @returns {Promise<Object>} urlに対するルール評価オブジェクト
    */
+
+  /**
+   * 単一のオリジンに対するrobots.txtのルール一式を返す。
+   * @param {string} origin - チェック対象のオリジン
+   * @param {Object} [auth=null] - 認証情報
+   * @returns {Promise<Object>} originに対するルール評価オブジェクト
+   */
+  async getOriginRules(origin, auth = null) {
+    let isInvalidUrl = false;
+    try {
+      new URL(origin);
+    } catch (e) {
+      isInvalidUrl = true;
+    }
+
+    const cacheStatus = isInvalidUrl ? 'error' : this.getCacheStatus(origin);
+    const parser = isInvalidUrl ? null : await this.getRobotsTxt(origin, auth);
+
+    return {
+      isAllowed: (targetUrl, userAgent = '*') => {
+        if (isInvalidUrl) return false;
+        if (!parser) return true;
+        return parser.isAllowed(targetUrl, userAgent) !== false;
+      },
+      evaluate: (targetUrl, userAgent = '*') => {
+        if (isInvalidUrl) return { isAllowed: false, status: 'error', directive: '' };
+
+        let isAllowed = true;
+        let status = 'unknown';
+        let directive = '';
+
+        if (!parser) {
+          status = cacheStatus === 'error' ? 'error' : 'unknown';
+          return { isAllowed: true, status, directive: '' };
+        }
+
+        const allowed = parser.isAllowed(targetUrl, userAgent);
+        isAllowed = allowed !== false;
+        status = isAllowed ? 'allowed' : 'disallowed';
+
+        const directives = [];
+        for (const ua of ['*', 'Googlebot']) {
+          const lineNum = parser.getMatchingLineNumber(targetUrl, ua);
+          if (lineNum !== undefined && lineNum > 0) {
+            const uaKey = ua.toLowerCase();
+            const rules = parser._rules[uaKey] || parser._rules['*'];
+            if (rules) {
+              for (const rule of rules) {
+                if (rule.lineNumber === lineNum) {
+                  const dirType = rule.allow ? 'Allow' : 'Disallow';
+                  directives.push(`User-agent: ${ua} ${dirType}: ${rule.pattern}`);
+                }
+              }
+            }
+          }
+        }
+        directive = directives.join('; ');
+
+        return { isAllowed, status, directive };
+      },
+      getCrawlDelay: (userAgent = '*') => {
+        if (!parser) return 0;
+        const delay = parser.getCrawlDelay(userAgent);
+        return delay ? delay * 1000 : 0;
+      },
+      getSitemaps: () => {
+        if (!parser) return [];
+        return parser.getSitemaps();
+      }
+    };
+  }
+
   async getRules(url, auth = null) {
     let isInvalidUrl = false;
     try {
