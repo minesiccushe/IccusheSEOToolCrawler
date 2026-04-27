@@ -21,9 +21,7 @@ function createWindow() {
 
   mainWindow.loadFile(path.join(__dirname, 'src', 'renderer', 'index.html'));
   
-  if (process.env.NODE_ENV !== 'production') {
-    mainWindow.webContents.openDevTools();
-  }
+
 }
 
 app.whenReady().then(() => {
