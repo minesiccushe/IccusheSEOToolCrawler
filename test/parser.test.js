@@ -40,7 +40,6 @@ describe('HTML Parser', () => {
       metaRobotsFollow: true,
       canonicalLink: 'https://example.com/test',
       metaRobots: 'index, follow',
-      canonicalLink: 'https://example.com/test',
       h1Count: 2,
       h2Count: 4,
       h3Count: 0,
@@ -83,7 +82,17 @@ describe('HTML Parser', () => {
       hasFAQ: false,
       hasArticle: false,
       hasProduct: false,
-      hasOrganization: false
+      hasOrganization: false,
+      canonicalUrl: 'https://example.com/test',
+      canonicalStatus: 'present',
+      canonicalType: 'self',
+      canonicalSelfReference: true,
+      canonicalToOtherDomain: false,
+      canonicalMismatch: false,
+      canonicalRelative: false,
+      canonicalProtocolMismatch: false,
+      canonicalParameterMismatch: false,
+      canonicalTrailingSlashMismatch: false
     });
   });
 
@@ -192,7 +201,17 @@ describe('HTML Parser', () => {
       hasFAQ: false,
       hasArticle: false,
       hasProduct: false,
-      hasOrganization: false
+      hasOrganization: false,
+      canonicalUrl: '',
+      canonicalStatus: 'missing',
+      canonicalType: 'empty',
+      canonicalSelfReference: false,
+      canonicalToOtherDomain: false,
+      canonicalMismatch: false,
+      canonicalRelative: false,
+      canonicalProtocolMismatch: false,
+      canonicalParameterMismatch: false,
+      canonicalTrailingSlashMismatch: false
     });
   });
 
@@ -270,7 +289,17 @@ describe('HTML Parser', () => {
       hasFAQ: false,
       hasArticle: false,
       hasProduct: false,
-      hasOrganization: false
+      hasOrganization: false,
+      canonicalUrl: '',
+      canonicalStatus: 'present',
+      canonicalType: 'empty',
+      canonicalSelfReference: false,
+      canonicalToOtherDomain: false,
+      canonicalMismatch: false,
+      canonicalRelative: false,
+      canonicalProtocolMismatch: false,
+      canonicalParameterMismatch: false,
+      canonicalTrailingSlashMismatch: false
     });
   });
 });

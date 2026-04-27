@@ -59,6 +59,21 @@ export function initGrid(containerSelector) {
       { title: "Transferred", field: "transferred", width: 100, visible: false },
       { title: "Total Transferred", field: "totalTransferred", width: 120, visible: false },
 
+      // Canonical Detailed Columns
+      { title: "Canonical URL", field: "canonicalUrl", width: 250, visible: false },
+      { title: "Canonical Status", field: "canonicalStatus", width: 130, visible: false },
+      { title: "Canonical Type", field: "canonicalType", width: 100, visible: false },
+      { title: "Canonical Self Ref", field: "canonicalSelfReference", width: 130, visible: false, formatter: "tickCross" },
+      { title: "Canonical To Other Domain", field: "canonicalToOtherDomain", width: 180, visible: false, formatter: "tickCross" },
+      { title: "Canonical Chain", field: "canonicalChain", width: 300, visible: false },
+      { title: "Canonical Chain Length", field: "canonicalChainLength", width: 150, visible: false, hozAlign: "right" },
+      { title: "Canonical Loop Flag", field: "canonicalLoopFlag", width: 150, visible: false, formatter: "tickCross" },
+      { title: "Canonical Mismatch", field: "canonicalMismatch", width: 150, visible: false, formatter: "tickCross" },
+      { title: "Canonical Relative", field: "canonicalRelative", width: 150, visible: false, formatter: "tickCross" },
+      { title: "Canonical Protocol Mismatch", field: "canonicalProtocolMismatch", width: 180, visible: false, formatter: "tickCross" },
+      { title: "Canonical Parameter Mismatch", field: "canonicalParameterMismatch", width: 180, visible: false, formatter: "tickCross" },
+      { title: "Canonical Trailing Slash Mismatch", field: "canonicalTrailingSlashMismatch", width: 200, visible: false, formatter: "tickCross" },
+
       // New columns for links and structures
       { title: "Internal Link Count", field: "internalLinkCount", width: 120, visible: false, hozAlign: "right" },
       { title: "External Link Count", field: "externalLinkCount", width: 120, visible: false, hozAlign: "right" },
@@ -74,6 +89,7 @@ export function initGrid(containerSelector) {
       { title: "Has Breadcrumb Link", field: "hasBreadcrumbLink", width: 120, visible: false },
       { title: "Link To Top Page", field: "linkToTopPage", width: 120, visible: false },
       { title: "Link Depth Estimate", field: "linkDepthEstimate", width: 120, visible: false, hozAlign: "right" },
+
       // Structured Data Fields
       { title: "SD Exists", field: "structuredDataExists", width: 100, visible: false },
       { title: "SD Count", field: "structuredDataCount", width: 100, visible: false },

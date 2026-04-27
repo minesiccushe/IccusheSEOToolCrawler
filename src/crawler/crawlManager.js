@@ -3,6 +3,7 @@ import PQueue from 'p-queue';
 import { fetchUrl } from './fetcher.js';
 import { parseHtml, evaluateIndexability } from './parser.js';
 import { extractLinks } from './linkExtractor.js';
+import { traceCanonicalChain } from './canonicalTracker.js';
 import { parseSitemap } from '../utils/sitemapParser.js';
 import robotsHandler from './robotsHandler.js';
 
@@ -176,6 +177,19 @@ export class CrawlManager extends EventEmitter {
           );
           
           Object.assign(rowData, parsedData, indexabilityResult);
+
+          // Canonical Chain Tracking
+          if (parsedData.canonicalStatus === 'present' && parsedData.canonicalUrl && parsedData.canonicalUrl !== url) {
+            const chainResult = await traceCanonicalChain(url, parsedData.canonicalUrl, this.auth);
+            Object.assign(rowData, chainResult);
+          } else {
+            // 自己参照またはCanonicalなし、あるいはエラーの場合は現在のURLのみをチェーンとする
+            Object.assign(rowData, {
+              canonicalChain: url,
+              canonicalChainLength: 1,
+              canonicalLoopFlag: false
+            });
+          }
 
           // リンクの抽出とキュー追加（Spiderモードの場合のみ）
           if (this.mode === 'spider') {

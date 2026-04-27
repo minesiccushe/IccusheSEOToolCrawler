@@ -29,6 +29,93 @@ function normalizeType(type) {
 }
 
 /**
+ * Canonical情報を解析する
+ * @param {string[]} canonicalHrefs canonicalリンクのhref配列
+ * @param {string} currentUrl 現在のURL
+ * @returns {Object} 解析結果
+ */
+function analyzeCanonical(canonicalHrefs, currentUrl) {
+  const result = {
+    canonicalUrl: '',
+    canonicalStatus: 'missing',
+    canonicalType: 'empty',
+    canonicalSelfReference: false,
+    canonicalToOtherDomain: false,
+    canonicalMismatch: false,
+    canonicalRelative: false,
+    canonicalProtocolMismatch: false,
+    canonicalParameterMismatch: false,
+    canonicalTrailingSlashMismatch: false,
+  };
+
+  if (canonicalHrefs.length === 0) {
+    return result;
+  }
+
+  if (canonicalHrefs.length > 1) {
+    result.canonicalStatus = 'multiple';
+  } else {
+    result.canonicalStatus = 'present';
+  }
+
+  const firstHref = canonicalHrefs[0];
+  if (!firstHref || firstHref.trim() === '') {
+    result.canonicalType = 'empty';
+    return result;
+  }
+
+  // canonicalRelative: 相対URL判定 (プロトコルから始まらない場合)
+  result.canonicalRelative = !/^(https?|ftp):/i.test(firstHref);
+
+  try {
+    const canonicalUrlObj = new URL(firstHref, currentUrl);
+    const currentUrlObj = new URL(currentUrl);
+
+    result.canonicalUrl = canonicalUrlObj.href;
+
+    // canonicalType
+    if (canonicalUrlObj.href === currentUrlObj.href) {
+      result.canonicalType = 'self';
+      result.canonicalSelfReference = true;
+    } else {
+      result.canonicalType = 'other';
+    }
+
+    // canonicalToOtherDomain
+    result.canonicalToOtherDomain = canonicalUrlObj.hostname !== currentUrlObj.hostname;
+
+    // canonicalProtocolMismatch
+    result.canonicalProtocolMismatch = canonicalUrlObj.protocol !== currentUrlObj.protocol;
+
+    // canonicalParameterMismatch
+    result.canonicalParameterMismatch = canonicalUrlObj.search !== currentUrlObj.search;
+
+    // canonicalTrailingSlashMismatch
+    const currentPath = currentUrlObj.pathname;
+    const canonicalPath = canonicalUrlObj.pathname;
+    const currentHasSlash = currentPath.endsWith('/');
+    const canonicalHasSlash = canonicalPath.endsWith('/');
+    const normCurrent = currentHasSlash ? currentPath.slice(0, -1) : currentPath;
+    const normCanonical = canonicalHasSlash ? canonicalPath.slice(0, -1) : canonicalPath;
+    
+    if (normCurrent === normCanonical && currentHasSlash !== canonicalHasSlash) {
+      result.canonicalTrailingSlashMismatch = true;
+    }
+
+    // canonicalMismatch
+    if (canonicalUrlObj.href !== currentUrlObj.href) {
+      result.canonicalMismatch = true;
+    }
+
+  } catch (e) {
+    result.canonicalStatus = 'invalid';
+    result.canonicalType = 'invalid';
+  }
+
+  return result;
+}
+
+/**
  * HTML文字列をパースし、必要な抽出項目を取得する
  * @param {string} html パース対象のHTML文字列
  * @returns {Object} 抽出されたデータ
@@ -383,9 +470,7 @@ export function parseHtml(html, currentUrl = '') {
     metaRobotsRaw: metaRobots,
     metaRobotsIndex: !metaRobotsLower.includes('noindex'),
     metaRobotsFollow: !metaRobotsLower.includes('nofollow'),
-    canonicalLink: $('link[rel="canonical" i]').attr('href') || '',
     metaRobots: getMetaContent('robots'),
-    canonicalLink: $('link[rel="canonical" i]').attr('href') || '',
     internalLinkCount,
     externalLinkCount,
     internalNofollowCount,
@@ -432,7 +517,20 @@ export function parseHtml(html, currentUrl = '') {
     hasFAQ,
     hasArticle,
     hasProduct,
-    hasOrganization
+    hasOrganization,
+
+    // Canonical Detailed Fields
+    ...(() => {
+      const canonicalHrefs = [];
+      $('link[rel="canonical" i]').each((_, el) => {
+        canonicalHrefs.push($(el).attr('href') || '');
+      });
+      const analysis = analyzeCanonical(canonicalHrefs, currentUrl);
+      return {
+        ...analysis,
+        canonicalLink: canonicalHrefs.length > 0 ? canonicalHrefs[0] : ''
+      };
+    })()
   };
 
   // メモリ管理: パース結果オブジェクトのみを返し、元のhtmlや$オブジェクトはスコープ外へ（GC対象とする）

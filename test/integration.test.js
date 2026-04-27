@@ -23,7 +23,10 @@ describe('Core Logic Integration', () => {
       ...parsedData,
       ...indexabilityResult,
       robotsTxtStatus: 'allowed',
-      robotsTxtDirective: ''
+      robotsTxtDirective: '',
+      canonicalChain: targetUrl,
+      canonicalChainLength: 1,
+      canonicalLoopFlag: false
     };
 
     // Verify fields
@@ -70,7 +73,20 @@ describe('Core Logic Integration', () => {
       'selfLinkCount',
       'hasBreadcrumbLink',
       'linkToTopPage',
-      'linkDepthEstimate'
+      'linkDepthEstimate',
+      'canonicalUrl',
+      'canonicalStatus',
+      'canonicalType',
+      'canonicalSelfReference',
+      'canonicalToOtherDomain',
+      'canonicalChain',
+      'canonicalChainLength',
+      'canonicalLoopFlag',
+      'canonicalMismatch',
+      'canonicalRelative',
+      'canonicalProtocolMismatch',
+      'canonicalParameterMismatch',
+      'canonicalTrailingSlashMismatch'
     ];
 
     // fetchResult comes with xRobotsTag
