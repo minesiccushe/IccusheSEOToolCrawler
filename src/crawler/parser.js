@@ -108,6 +108,7 @@ function analyzeCanonical(canonicalHrefs, currentUrl) {
     }
 
   } catch (e) {
+    // Explicitly handle invalid canonical validation instead of silent failure
     console.error(`Invalid URL encountered during canonical validation: ${e.message}`);
     result.canonicalStatus = 'invalid';
     result.canonicalType = 'invalid';
@@ -354,7 +355,7 @@ export function parseHtml(html, currentUrl = '') {
       }
 
     } catch (error) {
-      // Invalid URL, ignore
+      console.error(`Invalid URL encountered during link parsing: ${error.message}`);
     }
   });
 
@@ -697,6 +698,7 @@ export function evaluateIndexability(statusCode, parsedData, currentUrl, robotsT
         reasons.push('canonical_to_other');
       }
     } catch (e) {
+      // Explicit error handling for invalid canonical validation
       console.error(`Invalid URL encountered during canonical validation: ${e.message}`);
     }
   }

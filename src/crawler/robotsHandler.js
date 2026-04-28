@@ -17,7 +17,9 @@ class RobotsHandler {
           if (this.cache.has(origin)) {
               return this.cache.get(origin) === null ? 'error' : 'fetched';
           }
-      } catch (e) {}
+      } catch (e) {
+          console.error(`Invalid URL encountered during robots.txt cache check: ${e.message}`);
+      }
       return 'unknown';
   }
 
