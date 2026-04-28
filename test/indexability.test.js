@@ -1,8 +1,9 @@
 import { evaluateIndexability } from '../src/crawler/parser.js';
+import { jest } from '@jest/globals';
 
 describe('Indexability Evaluator', () => {
   it('should return indexable for 200 OK and no restrictions', () => {
-    const result = evaluateIndexability(200, { metaRobotsRaw: 'index, follow', canonicalLink: 'https://example.com/test' }, 'https://example.com/test');
+    const result = evaluateIndexability(200, { metaRobotsRaw: 'index, follow' }, 'https://example.com/test');
     expect(result).toEqual({ indexabilityFinal: 'indexable', indexabilityReason: '' });
   });
 
@@ -66,39 +67,46 @@ describe('Indexability Evaluator', () => {
     expect(result).toEqual({ indexabilityFinal: 'non-indexable', indexabilityReason: 'http_4xx|robots_txt_block|x_robots_noindex|meta_noindex' });
   });
 
-  it('should return non-indexable for Canonicalised for different canonical link', () => {
-    const result = evaluateIndexability(200, { canonicalLink: 'https://example.com/other' }, 'https://example.com/test');
-    expect(result).toEqual({ indexabilityFinal: 'non-indexable', indexabilityReason: 'canonical_to_other' });
-  });
+  describe('canonicalLink validation', () => {
+    it('should return indexable when canonicalLink matches currentUrl exactly', () => {
+      const result = evaluateIndexability(200, { canonicalLink: 'https://example.com/test' }, 'https://example.com/test');
+      expect(result).toEqual({ indexabilityFinal: 'indexable', indexabilityReason: '' });
+    });
 
-  it('should handle relative canonical links correctly', () => {
-    // Both resolve to the same absolute URL
-    const result1 = evaluateIndexability(200, { canonicalLink: '/test' }, 'https://example.com/test');
-    expect(result1).toEqual({ indexabilityFinal: 'indexable', indexabilityReason: '' });
+    it('should return non-indexable for Canonicalised for different canonical link', () => {
+      const result = evaluateIndexability(200, { canonicalLink: 'https://example.com/other' }, 'https://example.com/test');
+      expect(result).toEqual({ indexabilityFinal: 'non-indexable', indexabilityReason: 'canonical_to_other' });
+    });
 
-    // Resolves to different URL
-    const result2 = evaluateIndexability(200, { canonicalLink: '/other' }, 'https://example.com/test');
-    expect(result2).toEqual({ indexabilityFinal: 'non-indexable', indexabilityReason: 'canonical_to_other' });
-  });
+    it('should handle relative canonical links correctly and return indexable if they resolve to the same absolute URL', () => {
+      const result = evaluateIndexability(200, { canonicalLink: '/test' }, 'https://example.com/test');
+      expect(result).toEqual({ indexabilityFinal: 'indexable', indexabilityReason: '' });
+    });
 
-  it('should ignore invalid URLs in canonical link validation', () => {
-    // Both URLs invalid
-    const result1 = evaluateIndexability(200, { canonicalLink: 'invalid-url-no-base' }, 'invalid-url-no-base');
-    expect(result1).toEqual({ indexabilityFinal: 'indexable', indexabilityReason: '' });
+    it('should handle relative canonical links correctly and return non-indexable if they resolve to a different URL', () => {
+      const result = evaluateIndexability(200, { canonicalLink: '/other' }, 'https://example.com/test');
+      expect(result).toEqual({ indexabilityFinal: 'non-indexable', indexabilityReason: 'canonical_to_other' });
+    });
 
-    // Canonical URL valid, current URL invalid. The constructor new URL('valid', 'invalid') throws.
-    const result3 = evaluateIndexability(200, { canonicalLink: 'https://example.com/test' }, 'invalid-url-no-base');
-    expect(result3).toEqual({ indexabilityFinal: 'indexable', indexabilityReason: '' });
-  });
+    it('should return non-indexable when canonical link has different protocol', () => {
+      const result = evaluateIndexability(200, { canonicalLink: 'http://example.com/test' }, 'https://example.com/test');
+      expect(result).toEqual({ indexabilityFinal: 'non-indexable', indexabilityReason: 'canonical_to_other' });
+    });
 
-  it('should return non-indexable when canonical link has different protocol', () => {
-    const result = evaluateIndexability(200, { canonicalLink: 'http://example.com/test' }, 'https://example.com/test');
-    expect(result).toEqual({ indexabilityFinal: 'non-indexable', indexabilityReason: 'canonical_to_other' });
-  });
+    it('should handle invalid URLs gracefully without crashing and log an error', () => {
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
-  it('should ignore invalid canonical link URLs and return indexable', () => {
-    // URL constructor throws if the input is an invalid absolute URL
-    const result = evaluateIndexability(200, { canonicalLink: 'http://[invalid-url]' }, 'https://example.com/test');
-    expect(result).toEqual({ indexabilityFinal: 'indexable', indexabilityReason: '' });
+      const result1 = evaluateIndexability(200, { canonicalLink: 'http://[invalid-url]' }, 'https://example.com/test');
+      expect(result1).toEqual({ indexabilityFinal: 'indexable', indexabilityReason: '' });
+
+      const result2 = evaluateIndexability(200, { canonicalLink: 'invalid-url-no-base' }, 'invalid-url-no-base');
+      expect(result2).toEqual({ indexabilityFinal: 'indexable', indexabilityReason: '' });
+
+      const result3 = evaluateIndexability(200, { canonicalLink: 'https://example.com/test' }, 'invalid-url-no-base');
+      expect(result3).toEqual({ indexabilityFinal: 'indexable', indexabilityReason: '' });
+
+      expect(consoleSpy).toHaveBeenCalledTimes(3);
+      consoleSpy.mockRestore();
+    });
   });
 });
