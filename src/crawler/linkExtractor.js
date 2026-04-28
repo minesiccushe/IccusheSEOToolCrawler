@@ -16,6 +16,7 @@ export function extractLinks(html, baseUrl) {
   try {
     baseObj = new URL(baseUrl);
   } catch (e) {
+    console.error(`Invalid baseUrl: ${baseUrl}`, e.message);
     // baseUrlが不正な場合は空配列を返す
     return links;
   }
@@ -50,6 +51,7 @@ export function extractLinks(html, baseUrl) {
       
       links.push(urlObj.href);
     } catch (error) {
+      console.error(`Invalid href: ${href}`, error.message);
       // URLのパースに失敗した場合は無視
     }
   });
