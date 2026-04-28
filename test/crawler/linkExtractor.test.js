@@ -1,3 +1,4 @@
+import { jest } from '@jest/globals';
 import { extractLinks } from '../../src/crawler/linkExtractor.js';
 
 describe('linkExtractor.js のテスト', () => {
@@ -99,6 +100,7 @@ describe('linkExtractor.js のテスト', () => {
   });
 
   test('URLのパースに失敗するような不正なhrefは無視する', () => {
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     const html = `
       <html>
         <body>
@@ -112,5 +114,18 @@ describe('linkExtractor.js のテスト', () => {
 
     expect(links.length).toBe(1);
     expect(links).toContain('https://example.com/valid');
+
+    errorSpy.mockRestore();
+  });
+
+  test('baseUrlが不正な場合は空配列を返す', () => {
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const html = `<a href="/valid">Valid Link</a>`;
+    const links = extractLinks(html, 'invalid-base-url');
+
+    expect(links.length).toBe(0);
+    expect(links).toEqual([]);
+
+    errorSpy.mockRestore();
   });
 });
