@@ -29,9 +29,10 @@ class RobotsHandler {
    * @returns {Promise<Object>} robots-parserのインスタンス、取得失敗時はnull
    */
   async getRobotsTxt(url, auth = null) {
+    let origin = null;
     try {
       const targetUrl = url instanceof URL ? url : new URL(url);
-      const origin = targetUrl.origin;
+      origin = targetUrl.origin;
       const robotsUrl = `${origin}/robots.txt`;
 
       if (this.cache.has(origin)) {
@@ -63,11 +64,8 @@ class RobotsHandler {
       console.error(`Failed to fetch robots.txt for ${urlStr}:`, error.message);
       // エラー時はnullを返し、デフォルト許可とする。エラー状態のキャッシュは状況に応じて検討するが、今回はシンプルにnullをキャッシュしないでおくか、あるいはエラーもキャッシュするか。
       // パフォーマンスを考慮し、エラー（不正URL等）の場合もnullとしてキャッシュする。
-      try {
-         const origin = url instanceof URL ? url.origin : new URL(url).origin;
-         this.cache.set(origin, null);
-      } catch (e) {
-         // 無効なURLの場合
+      if (origin) {
+        this.cache.set(origin, null);
       }
       return null;
     }
