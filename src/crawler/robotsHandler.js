@@ -115,15 +115,16 @@ class RobotsHandler {
       let status = 'unknown';
       let directive = '';
 
+      let parsedUrl;
       try {
-          new URL(url);
+          parsedUrl = new URL(url);
       } catch (e) {
           return { isAllowed: false, status: 'error', directive: '' };
       }
 
       // Check cache status before fetch to know if it's unknown vs error
-      const preFetchStatus = this.getCacheStatus(url);
-      const parser = await this.getRobotsTxt(url, auth);
+      const preFetchStatus = this.getCacheStatus(parsedUrl);
+      const parser = await this.getRobotsTxt(parsedUrl, auth);
 
       if (!parser) {
           // If parser is null, it means there was an error fetching or it's a 4xx/5xx for robots.txt
@@ -135,7 +136,7 @@ class RobotsHandler {
           // We don't have a specific way to distinguish 404 from 500 error in `getRobotsTxt` without modifying it.
           // But null in cache means it threw an error (like 500 or timeout), while 200 parses.
           // Let's refine how we set status when parser is null.
-          status = this.getCacheStatus(url) === 'error' ? 'error' : 'unknown';
+          status = this.getCacheStatus(parsedUrl) === 'error' ? 'error' : 'unknown';
           return { isAllowed: true, status, directive: '' };
       }
 
@@ -144,7 +145,7 @@ class RobotsHandler {
       status = isAllowed ? 'allowed' : 'disallowed';
 
       // prompt specifies checking both * and Googlebot
-      directive = await this.getRobotsDirective(url, ['*', 'Googlebot'], auth);
+      directive = await this.getRobotsDirective(parsedUrl, ['*', 'Googlebot'], auth);
 
       return { isAllowed, status, directive };
   }
