@@ -17,9 +17,7 @@ class RobotsHandler {
           if (this.cache.has(origin)) {
               return this.cache.get(origin) === null ? 'error' : 'fetched';
           }
-      } catch (e) {
-          console.error(`Invalid URL encountered during robots.txt cache check: ${e.message}`);
-      }
+      } catch (e) {}
       return 'unknown';
   }
 
@@ -31,10 +29,9 @@ class RobotsHandler {
    * @returns {Promise<Object>} robots-parserのインスタンス、取得失敗時はnull
    */
   async getRobotsTxt(url, auth = null) {
-    let origin = null;
     try {
       const targetUrl = url instanceof URL ? url : new URL(url);
-      origin = targetUrl.origin;
+      const origin = targetUrl.origin;
       const robotsUrl = `${origin}/robots.txt`;
 
       if (this.cache.has(origin)) {
@@ -66,8 +63,11 @@ class RobotsHandler {
       console.error(`Failed to fetch robots.txt for ${urlStr}:`, error.message);
       // エラー時はnullを返し、デフォルト許可とする。エラー状態のキャッシュは状況に応じて検討するが、今回はシンプルにnullをキャッシュしないでおくか、あるいはエラーもキャッシュするか。
       // パフォーマンスを考慮し、エラー（不正URL等）の場合もnullとしてキャッシュする。
-      if (origin) {
-        this.cache.set(origin, null);
+      try {
+         const origin = url instanceof URL ? url.origin : new URL(url).origin;
+         this.cache.set(origin, null);
+      } catch (e) {
+         // 無効なURLの場合
       }
       return null;
     }
@@ -115,16 +115,15 @@ class RobotsHandler {
       let status = 'unknown';
       let directive = '';
 
-      let parsedUrl;
       try {
-          parsedUrl = new URL(url);
+          new URL(url);
       } catch (e) {
           return { isAllowed: false, status: 'error', directive: '' };
       }
 
       // Check cache status before fetch to know if it's unknown vs error
-      const preFetchStatus = this.getCacheStatus(parsedUrl);
-      const parser = await this.getRobotsTxt(parsedUrl, auth);
+      const preFetchStatus = this.getCacheStatus(url);
+      const parser = await this.getRobotsTxt(url, auth);
 
       if (!parser) {
           // If parser is null, it means there was an error fetching or it's a 4xx/5xx for robots.txt
@@ -136,7 +135,7 @@ class RobotsHandler {
           // We don't have a specific way to distinguish 404 from 500 error in `getRobotsTxt` without modifying it.
           // But null in cache means it threw an error (like 500 or timeout), while 200 parses.
           // Let's refine how we set status when parser is null.
-          status = this.getCacheStatus(parsedUrl) === 'error' ? 'error' : 'unknown';
+          status = this.getCacheStatus(url) === 'error' ? 'error' : 'unknown';
           return { isAllowed: true, status, directive: '' };
       }
 
@@ -145,7 +144,7 @@ class RobotsHandler {
       status = isAllowed ? 'allowed' : 'disallowed';
 
       // prompt specifies checking both * and Googlebot
-      directive = await this.getRobotsDirective(parsedUrl, ['*', 'Googlebot'], auth);
+      directive = await this.getRobotsDirective(url, ['*', 'Googlebot'], auth);
 
       return { isAllowed, status, directive };
   }

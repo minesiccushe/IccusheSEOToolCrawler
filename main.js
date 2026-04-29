@@ -174,18 +174,7 @@ ipcMain.handle('export-csv', async (event, data) => {
 // 外部ブラウザでURLを開く
 try {
   ipcMain.handle('open-external', async (event, url) => {
-    if (url) {
-      try {
-        const parsedUrl = new URL(url);
-        if (['http:', 'https:'].includes(parsedUrl.protocol)) {
-          await shell.openExternal(url);
-        } else {
-          console.warn(`Blocked attempt to open external URL with unsafe protocol: ${parsedUrl.protocol}`);
-        }
-      } catch (e) {
-        console.error('Invalid URL provided to open-external:', url);
-      }
-    }
+    if (url) await shell.openExternal(url);
   });
 } catch (e) {
   console.warn('IPC handler "open-external" is already registered.');
