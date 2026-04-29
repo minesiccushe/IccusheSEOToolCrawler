@@ -55,10 +55,10 @@ describe('Security: open-external IPC handler', () => {
         throw new Error('open-external handler not registered');
     }
     await openExternalHandler(null, 'http://example.com');
-    expect(electron.shell.openExternal).toHaveBeenCalledWith('http://example.com');
+    expect(electron.shell.openExternal).toHaveBeenCalledWith('http://example.com/');
 
     await openExternalHandler(null, 'https://example.com');
-    expect(electron.shell.openExternal).toHaveBeenCalledWith('https://example.com');
+    expect(electron.shell.openExternal).toHaveBeenCalledWith('https://example.com/');
   });
 
   test('should NOT allow other protocols', async () => {
