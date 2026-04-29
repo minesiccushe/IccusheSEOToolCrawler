@@ -178,7 +178,7 @@ try {
       try {
         const parsedUrl = new URL(url);
         if (['http:', 'https:'].includes(parsedUrl.protocol)) {
-          await shell.openExternal(url);
+          await shell.openExternal(parsedUrl.href);
         } else {
           console.warn(`Blocked attempt to open external URL with unsafe protocol: ${parsedUrl.protocol}`);
         }
