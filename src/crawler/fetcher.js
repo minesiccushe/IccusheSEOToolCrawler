@@ -17,7 +17,6 @@ axiosRetry(axios, {
            (error.response?.status >= 500 && error.response?.status <= 599);
   },
   onRetry: (retryCount, error, requestConfig) => {
-    console.log(`Retrying request (${retryCount}): ${requestConfig.url} - Reason: ${error.message}`);
   }
 });
 
