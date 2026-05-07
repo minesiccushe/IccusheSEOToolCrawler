@@ -8,6 +8,20 @@ const __dirname = path.dirname(__filename);
 let mainWindow;
 let crawlManagerInstance = null;
 
+/**
+ * URLが有効かつ http: または https: プロトコルを使用しているかチェックする
+ * @param {string} urlStr
+ * @returns {boolean}
+ */
+function isValidHttpUrl(urlStr) {
+  try {
+    const url = new URL(urlStr);
+    return ['http:', 'https:'].includes(url.protocol);
+  } catch (e) {
+    return false;
+  }
+}
+
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1200,
@@ -38,6 +52,9 @@ app.on('window-all-closed', function () {
 
 // Phase 2 互換用（単一URL取得）
 ipcMain.handle('fetch-url', async (event, url) => {
+  if (!isValidHttpUrl(url)) {
+    return { success: false, error: 'Invalid URL protocol. Only http: and https: are allowed.' };
+  }
   try {
     const { fetchUrl } = await import('./src/crawler/fetcher.js');
     const { parseHtml, evaluateIndexability } = await import('./src/crawler/parser.js');
@@ -72,6 +89,14 @@ ipcMain.handle('fetch-url', async (event, url) => {
 
 // クローラーの制御
 ipcMain.handle('start-crawl', async (event, url, options) => {
+  // URLのバリデーション
+  const urlsToValidate = Array.isArray(url) ? url : [url];
+  for (const u of urlsToValidate) {
+    if (!isValidHttpUrl(u)) {
+      return { success: false, error: 'Invalid URL protocol. Only http: and https: are allowed.' };
+    }
+  }
+
   try {
     if (crawlManagerInstance) {
       crawlManagerInstance.clear();
